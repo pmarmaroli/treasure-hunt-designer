@@ -1,6 +1,8 @@
 import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 
+type Language = 'fr' | 'en' | 'es';
+
 type Participant = {
   name: string;
   secret: string;
@@ -27,27 +29,140 @@ type TreasureHunt = {
   riddles: Riddle[];
 };
 
+// Traductions pour les PDF
+const pdfTranslations = {
+  fr: {
+    startInstructions: 'Instructions de départ',
+    for: 'Pour:',
+    hello: 'Bonjour',
+    findSecretCode: 'Pour trouver ton code secret, tu dois te rendre à un certain endroit.',
+    clueToFindLocation: 'Voici l\'indice pour trouver cet endroit:',
+    riddleFor: 'Énigme pour:',
+    dear: 'Cher(e)',
+    riddleNumber: 'Voici ton énigme numéro',
+    writeAnswer: 'Écris ta réponse au dos de cette feuille puis',
+    followInstructions: 'suis ces instructions:',
+    goToNextLocation: 'rends-toi à ton prochain lieu.',
+    toFindSecretCode: 'Pour trouver ton code secret, suis ces instructions:',
+    toFindNextLocation: 'Pour trouver ton prochain lieu, suis cet indice:',
+    page: 'Page',
+    location: 'Lieu:',
+    summary: 'Récapitulatif pour l\'organisateur',
+    participantsAndCodes: 'Participants et leurs codes',
+    name: 'Nom',
+    secretCode: 'Code secret',
+    finalMessage: 'Message final',
+    locationsAndClues: 'Lieux et indices',
+    clue: 'Indice',
+    circuitsToFollow: 'Circuits à suivre par participant',
+    circuitsToFollowCont: 'Circuits à suivre (suite)',
+    finalCode: 'Code final:',
+    riddlesAnswersDigits: 'Énigmes, réponses et chiffres correspondants',
+    riddlesCont: 'Énigmes (suite)',
+    riddle: 'Énigme',
+    answer: 'Réponse:',
+    instruction: 'Instruction:',
+    digit: 'Chiffre:',
+    startInstructionsFile: 'instructions_depart',
+    riddlesFile: 'enigmes',
+    summaryFile: 'recapitulatif'
+  },
+  en: {
+    startInstructions: 'Starting Instructions',
+    for: 'For:',
+    hello: 'Hello',
+    findSecretCode: 'To find your secret code, you need to go to a specific location.',
+    clueToFindLocation: 'Here is the clue to find this location:',
+    riddleFor: 'Riddle for:',
+    dear: 'Dear',
+    riddleNumber: 'Here is your riddle number',
+    writeAnswer: 'Write your answer on the back of this sheet then',
+    followInstructions: 'follow these instructions:',
+    goToNextLocation: 'go to your next location.',
+    toFindSecretCode: 'To find your secret code, follow these instructions:',
+    toFindNextLocation: 'To find your next location, follow this clue:',
+    page: 'Page',
+    location: 'Location:',
+    summary: 'Summary for the organizer',
+    participantsAndCodes: 'Participants and their codes',
+    name: 'Name',
+    secretCode: 'Secret code',
+    finalMessage: 'Final message',
+    locationsAndClues: 'Locations and clues',
+    clue: 'Clue',
+    circuitsToFollow: 'Circuits to follow by participant',
+    circuitsToFollowCont: 'Circuits to follow (continued)',
+    finalCode: 'Final code:',
+    riddlesAnswersDigits: 'Riddles, answers and corresponding digits',
+    riddlesCont: 'Riddles (continued)',
+    riddle: 'Riddle',
+    answer: 'Answer:',
+    instruction: 'Instruction:',
+    digit: 'Digit:',
+    startInstructionsFile: 'starting_instructions',
+    riddlesFile: 'riddles',
+    summaryFile: 'summary'
+  },
+  es: {
+    startInstructions: 'Instrucciones iniciales',
+    for: 'Para:',
+    hello: 'Hola',
+    findSecretCode: 'Para encontrar tu código secreto, debes ir a un lugar específico.',
+    clueToFindLocation: 'Aquí está la pista para encontrar este lugar:',
+    riddleFor: 'Acertijo para:',
+    dear: 'Estimado/a',
+    riddleNumber: 'Aquí está tu acertijo número',
+    writeAnswer: 'Escribe tu respuesta en el reverso de esta hoja y luego',
+    followInstructions: 'sigue estas instrucciones:',
+    goToNextLocation: 've a tu próxima ubicación.',
+    toFindSecretCode: 'Para encontrar tu código secreto, sigue estas instrucciones:',
+    toFindNextLocation: 'Para encontrar tu próxima ubicación, sigue esta pista:',
+    page: 'Página',
+    location: 'Ubicación:',
+    summary: 'Resumen para el organizador',
+    participantsAndCodes: 'Participantes y sus códigos',
+    name: 'Nombre',
+    secretCode: 'Código secreto',
+    finalMessage: 'Mensaje final',
+    locationsAndClues: 'Ubicaciones y pistas',
+    clue: 'Pista',
+    circuitsToFollow: 'Circuitos a seguir por participante',
+    circuitsToFollowCont: 'Circuitos a seguir (continuación)',
+    finalCode: 'Código final:',
+    riddlesAnswersDigits: 'Acertijos, respuestas y dígitos correspondientes',
+    riddlesCont: 'Acertijos (continuación)',
+    riddle: 'Acertijo',
+    answer: 'Respuesta:',
+    instruction: 'Instrucción:',
+    digit: 'Dígito:',
+    startInstructionsFile: 'instrucciones_iniciales',
+    riddlesFile: 'acertijos',
+    summaryFile: 'resumen'
+  }
+};
+
 /**
  * Fonction principale pour générer tous les PDFs nécessaires
  */
-export const generateTreasureHuntPDFs = (treasureHunt: TreasureHunt) => {
-  // Cette fonction génère les trois types de PDF
-  generateStartInstructionsPDF(treasureHunt);
-  generateRiddleSheetsPDF(treasureHunt);
-  generateSummaryPDF(treasureHunt);
+export const generateTreasureHuntPDFs = (treasureHunt: TreasureHunt, language: Language = 'fr') => {
+  // Cette fonction génère les trois types de PDF avec la langue appropriée
+  generateStartInstructionsPDF(treasureHunt, language);
+  generateRiddleSheetsPDF(treasureHunt, language);
+  generateSummaryPDF(treasureHunt, language);
 };
 
 /**
  * Génère un PDF avec les instructions de départ pour chaque participant
  */
-const generateStartInstructionsPDF = (treasureHunt: TreasureHunt) => {
+const generateStartInstructionsPDF = (treasureHunt: TreasureHunt, language: Language) => {
   const doc = new jsPDF();
   const title = treasureHunt.title;
+  const texts = pdfTranslations[language];
   
   doc.setFontSize(20);
   doc.text(title, 105, 20, { align: 'center' });
   doc.setFontSize(16);
-  doc.text('Instructions de départ', 105, 30, { align: 'center' });
+  doc.text(texts.startInstructions, 105, 30, { align: 'center' });
   
   let y = 50;
   
@@ -61,16 +176,16 @@ const generateStartInstructionsPDF = (treasureHunt: TreasureHunt) => {
     const firstLocationClue = treasureHunt.locations[firstLocationIndex].clue;
     
     doc.setFontSize(14);
-    doc.text(`Pour: ${participant.name}`, 20, y);
+    doc.text(`${texts.for} ${participant.name}`, 20, y);
     y += 10;
     
     doc.setFontSize(12);
-    doc.text(`Bonjour ${participant.name} !`, 20, y);
+    doc.text(`${texts.hello} ${participant.name}!`, 20, y);
     y += 10;
     
-    const text = `Pour trouver ton code secret, tu dois te rendre à un certain endroit.
+    const text = `${texts.findSecretCode}
 
-Voici l'indice pour trouver cet endroit: ${firstLocationClue}`;
+${texts.clueToFindLocation} ${firstLocationClue}`;
     
     const splitText = doc.splitTextToSize(text, 170);
     doc.text(splitText, 20, y);
@@ -81,16 +196,17 @@ Voici l'indice pour trouver cet endroit: ${firstLocationClue}`;
     }
   });
   
-  // Sauvegarde explicite du PDF d'instructions de départ
-  doc.save(`${title.replace(/\s+/g, '_')}_instructions_depart.pdf`);
+  // Sauvegarde du PDF d'instructions de départ
+  doc.save(`${title.replace(/\s+/g, '_')}_${texts.startInstructionsFile}.pdf`);
 };
 
 /**
  * Génère un PDF avec les feuilles d'énigmes pour la chasse au trésor
  */
-const generateRiddleSheetsPDF = (treasureHunt: TreasureHunt) => {
+const generateRiddleSheetsPDF = (treasureHunt: TreasureHunt, language: Language) => {
   const doc = new jsPDF();
   const title = treasureHunt.title;
+  const texts = pdfTranslations[language];
   
   let pageCount = 0;
   
@@ -108,25 +224,25 @@ const generateRiddleSheetsPDF = (treasureHunt: TreasureHunt) => {
       doc.text(title, 105, 20, { align: 'center' });
       
       doc.setFontSize(14);
-      doc.text(`Énigme pour: ${participant.name}`, 105, 30, { align: 'center' });
+      doc.text(`${texts.riddleFor} ${participant.name}`, 105, 30, { align: 'center' });
       doc.text(`(${circuitIndex + 1}/${participant.circuit.length})`, 105, 40, { align: 'center' });
       
       doc.setFontSize(12);
-      doc.text(`Cher(e) ${participant.name},`, 20, 60);
+      doc.text(`${texts.dear} ${participant.name},`, 20, 60);
       
-      doc.text(`Voici ton énigme numéro ${circuitIndex + 1}:`, 20, 70);
+      doc.text(`${texts.riddleNumber} ${circuitIndex + 1}:`, 20, 70);
       
       const riddleText = doc.splitTextToSize(riddle.text, 170);
       doc.text(riddleText, 20, 80);
       
       let y = 80 + riddleText.length * 7 + 10;
       
-      doc.text(`Écris ta réponse au dos de cette feuille puis ${isLastLocation ? 'suis ces instructions:' : 'rends-toi à ton prochain lieu.'}`, 20, y);
+      doc.text(`${texts.writeAnswer} ${isLastLocation ? texts.followInstructions : texts.goToNextLocation}`, 20, y);
       y += 10;
       
       if (isLastLocation) {
         // Final instructions to get the code
-        doc.text('Pour trouver ton code secret, suis ces instructions:', 20, y);
+        doc.text(texts.toFindSecretCode, 20, y);
         y += 10;
         
         participant.circuit.forEach((locIdx, idx) => {
@@ -140,7 +256,7 @@ const generateRiddleSheetsPDF = (treasureHunt: TreasureHunt) => {
         const nextLocationIndex = participant.circuit[circuitIndex + 1];
         const nextLocationClue = treasureHunt.locations[nextLocationIndex].clue;
         
-        doc.text('Pour trouver ton prochain lieu, suis cet indice:', 20, y);
+        doc.text(texts.toFindNextLocation, 20, y);
         y += 10;
         
         const clueText = doc.splitTextToSize(nextLocationClue, 160);
@@ -150,30 +266,31 @@ const generateRiddleSheetsPDF = (treasureHunt: TreasureHunt) => {
       // Add footer with participant name, page number, and location
       const location = treasureHunt.locations[locationIndex];
       doc.setFontSize(10);
-      doc.text(`${participant.name} - Page ${circuitIndex + 1}/${participant.circuit.length} - Lieu: ${location.name}`, 105, 280, { align: 'center' });
+      doc.text(`${participant.name} - ${texts.page} ${circuitIndex + 1}/${participant.circuit.length} - ${texts.location} ${location.name}`, 105, 280, { align: 'center' });
     });
   });
   
-  // Sauvegarde explicite du PDF des énigmes
-  doc.save(`${title.replace(/\s+/g, '_')}_enigmes.pdf`);
+  // Sauvegarde du PDF des énigmes
+  doc.save(`${title.replace(/\s+/g, '_')}_${texts.riddlesFile}.pdf`);
 };
 
 /**
  * Génère un PDF récapitulatif avec tous les détails de la chasse au trésor
  */
-const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
+const generateSummaryPDF = (treasureHunt: TreasureHunt, language: Language) => {
   const doc = new jsPDF();
   const title = treasureHunt.title;
+  const texts = pdfTranslations[language];
   
   doc.setFontSize(20);
   doc.text(title, 105, 20, { align: 'center' });
   doc.setFontSize(16);
-  doc.text('Récapitulatif pour l\'organisateur', 105, 30, { align: 'center' });
+  doc.text(texts.summary, 105, 30, { align: 'center' });
   
   // Participant information
   let y = 45;
   doc.setFontSize(14);
-  doc.text('Participants et leurs codes', 20, y);
+  doc.text(texts.participantsAndCodes, 20, y);
   y += 10;
   
   // Draw header background
@@ -183,9 +300,9 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
   // Draw header text
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(12);
-  doc.text('Nom', 25, y + 7);
-  doc.text('Code secret', 70, y + 7);
-  doc.text('Message final', 120, y + 7);
+  doc.text(texts.name, 25, y + 7);
+  doc.text(texts.secretCode, 70, y + 7);
+  doc.text(texts.finalMessage, 120, y + 7);
   
   // Reset text color
   doc.setTextColor(0, 0, 0);
@@ -218,7 +335,7 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
   // Location information
   y += 10;
   doc.setFontSize(14);
-  doc.text('Lieux et indices', 20, y);
+  doc.text(texts.locationsAndClues, 20, y);
   y += 10;
   
   // Draw header background
@@ -229,8 +346,8 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
   doc.setTextColor(255, 255, 255);
   doc.setFontSize(12);
   doc.text('#', 25, y + 7);
-  doc.text('Lieu', 40, y + 7);
-  doc.text('Indice', 90, y + 7);
+  doc.text(texts.name, 40, y + 7);
+  doc.text(texts.clue, 90, y + 7);
   
   // Reset text color
   doc.setTextColor(0, 0, 0);
@@ -264,7 +381,7 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
   doc.addPage();
   y = 20;
   doc.setFontSize(14);
-  doc.text('Circuits à suivre par participant', 20, y);
+  doc.text(texts.circuitsToFollow, 20, y);
   y += 15;
   
   treasureHunt.participants.forEach((participant) => {
@@ -272,7 +389,7 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
       doc.addPage();
       y = 20;
       doc.setFontSize(14);
-      doc.text('Circuits à suivre (suite)', 20, y);
+      doc.text(texts.circuitsToFollowCont, 20, y);
       y += 15;
     }
     
@@ -290,7 +407,7 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
       const location = treasureHunt.locations[locationIndex];
       const riddle = treasureHunt.riddles[locationIndex];
       
-      circuitInfo += `${circuitIndex + 1}. ${location.name} (Énigme: "${riddle.text.substring(0, 30)}${riddle.text.length > 30 ? '...' : ''}", Chiffre: ${riddle.digit})\n`;
+      circuitInfo += `${circuitIndex + 1}. ${location.name} (${texts.riddle}: "${riddle.text.substring(0, 30)}${riddle.text.length > 30 ? '...' : ''}", ${texts.digit.replace(':', '')} ${riddle.digit})\n`;
     });
     
     const circuitLines = doc.splitTextToSize(circuitInfo, 165);
@@ -301,7 +418,7 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
     doc.setFillColor(245, 245, 220);
     doc.rect(25, y - 5, 80, 10, 'F');
     doc.setFontSize(12);
-    doc.text(`Code final: ${participant.code}`, 30, y);
+    doc.text(`${texts.finalCode} ${participant.code}`, 30, y);
     y += 15;
   });
   
@@ -309,7 +426,7 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
   doc.addPage();
   y = 20;
   doc.setFontSize(14);
-  doc.text('Énigmes, réponses et chiffres correspondants', 20, y);
+  doc.text(texts.riddlesAnswersDigits, 20, y);
   y += 15;
   
   treasureHunt.riddles.forEach((riddle, riddleIndex) => {
@@ -317,7 +434,7 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
       doc.addPage();
       y = 20;
       doc.setFontSize(14);
-      doc.text('Énigmes (suite)', 20, y);
+      doc.text(texts.riddlesCont, 20, y);
       y += 15;
     }
     
@@ -326,7 +443,7 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
     doc.setTextColor(255, 255, 255);
     doc.rect(20, y - 5, 170, 10, 'F');
     doc.setFontSize(12);
-    doc.text(`Énigme ${riddleIndex + 1}`, 25, y);
+    doc.text(`${texts.riddle} ${riddleIndex + 1}`, 25, y);
     doc.setTextColor(0, 0, 0);
     y += 10;
     
@@ -338,23 +455,23 @@ const generateSummaryPDF = (treasureHunt: TreasureHunt) => {
     
     // Answer
     doc.setFontSize(11);
-    doc.text(`Réponse: ${riddle.answer}`, 25, y);
+    doc.text(`${texts.answer} ${riddle.answer}`, 25, y);
     y += 7;
     
     // Instruction
-    const instructionText = doc.splitTextToSize(`Instruction: ${riddle.instruction}`, 165);
+    const instructionText = doc.splitTextToSize(`${texts.instruction} ${riddle.instruction}`, 165);
     doc.text(instructionText, 25, y);
     y += instructionText.length * 7 + 5;
     
     // Digit
     doc.setFillColor(230, 250, 230);
     doc.rect(25, y - 5, 40, 10, 'F');
-    doc.text(`Chiffre: ${riddle.digit}`, 30, y);
+    doc.text(`${texts.digit} ${riddle.digit}`, 30, y);
     y += 15;
   });
   
-  // Sauvegarde explicite du PDF récapitulatif
-  doc.save(`${title.replace(/\s+/g, '_')}_recapitulatif.pdf`);
+  // Sauvegarde du PDF récapitulatif
+  doc.save(`${title.replace(/\s+/g, '_')}_${texts.summaryFile}.pdf`);
 };
 
 export default generateTreasureHuntPDFs;

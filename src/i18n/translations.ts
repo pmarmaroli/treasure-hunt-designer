@@ -84,14 +84,35 @@ export type TranslationKey =
   | 'wrongCode'
   | 'secretRevealed'
   | 'restart'
-  
+  | 'edit'
+  | 'finalize'
+  | 'step'
+  | 'yourAnswerHere'
+  | 'validateAnswer' 
+  | 'solvedAllRiddles'
+
   // Import
   | 'importTitle'
   | 'dragDropJSON'
   | 'browseFiles'
   | 'importSuccess'
   | 'wrongFileFormat'
-  | 'expectedFormat';
+  | 'expectedFormat'
+  
+  // File formats
+  | 'invalidFileFormat'
+  | 'jsonReadError'
+  | 'requiredElements'
+  | 'titleElement'
+  | 'participantsElement'
+  | 'locationsElement'
+  | 'riddlesElement'
+  | 'or'
+  
+  // PDF generation translations
+  | 'hello'
+  | 'findSecretCode'
+  | 'clueToFindLocation';
 
 type TranslationsType = {
   [key in 'fr' | 'en' | 'es']: {
@@ -186,7 +207,13 @@ export const translations: TranslationsType = {
     wrongCode: 'Code incorrect. Vérifie les chiffres que tu as collectés!',
     secretRevealed: 'Bravo {name} ! Ton cadeau est caché {location}',
     restart: 'Recommencer',
-    
+    edit: 'Modifier',
+    finalize: 'Finaliser',
+    step: 'Étape',
+    yourAnswerHere: 'Ta réponse ici',
+    validateAnswer: 'Valider ma réponse',
+    solvedAllRiddles: 'Tu as résolu toutes les énigmes!',
+
     // Import
     importTitle: 'Importer une chasse au trésor',
     dragDropJSON: 'Glissez et déposez votre fichier JSON ici',
@@ -194,6 +221,21 @@ export const translations: TranslationsType = {
     importSuccess: 'Chasse au trésor importée avec succès!',
     wrongFileFormat: 'Le fichier doit être au format JSON',
     expectedFormat: 'Format attendu',
+    
+    // File formats
+    invalidFileFormat: 'Format de fichier incorrect. Veuillez importer un fichier de chasse au trésor valide.',
+    jsonReadError: 'Erreur lors de la lecture du fichier JSON:',
+    requiredElements: 'Le fichier JSON doit contenir:',
+    titleElement: 'Un titre (title)',
+    participantsElement: 'Une liste de participants (participants)',
+    locationsElement: 'Une liste de lieux (locations)',
+    riddlesElement: 'Une liste d\'énigmes (riddles)',
+    or: 'ou',
+    
+    // PDF generation translations
+    hello: 'Bonjour',
+    findSecretCode: 'Pour trouver ton code secret, tu dois te rendre à un certain endroit.',
+    clueToFindLocation: 'Voici l\'indice pour trouver cet endroit:'
   },
   
   en: {
@@ -282,7 +324,13 @@ export const translations: TranslationsType = {
     wrongCode: 'Incorrect code. Check the digits you collected!',
     secretRevealed: 'Congratulations {name}! Your gift is hidden {location}',
     restart: 'Restart',
-    
+    edit: 'Edit',
+    finalize: 'Finalize',
+    step: 'Step',
+    yourAnswerHere: 'Your answer here',
+    validateAnswer: 'Validate my answer',
+    solvedAllRiddles: 'You solved all the riddles!',
+
     // Import
     importTitle: 'Import a treasure hunt',
     dragDropJSON: 'Drag and drop your JSON file here',
@@ -290,6 +338,21 @@ export const translations: TranslationsType = {
     importSuccess: 'Treasure hunt imported successfully!',
     wrongFileFormat: 'The file must be in JSON format',
     expectedFormat: 'Expected format',
+    
+    // File formats
+    invalidFileFormat: 'Invalid file format. Please import a valid treasure hunt file.',
+    jsonReadError: 'Error reading JSON file:',
+    requiredElements: 'The JSON file must contain:',
+    titleElement: 'A title (title)',
+    participantsElement: 'A list of participants (participants)',
+    locationsElement: 'A list of locations (locations)',
+    riddlesElement: 'A list of riddles (riddles)',
+    or: 'or',
+    
+    // PDF generation translations
+    hello: 'Hello',
+    findSecretCode: 'To find your secret code, you need to go to a specific location.',
+    clueToFindLocation: 'Here is the clue to find this location:'
   },
   
   es: {
@@ -378,6 +441,12 @@ export const translations: TranslationsType = {
     wrongCode: '¡Código incorrecto. ¡Verifica los dígitos que recolectaste!',
     secretRevealed: '¡Felicidades {name}! Tu regalo está escondido {location}',
     restart: 'Reiniciar',
+    edit: 'Editar',
+    finalize: 'Finalizar',  
+    step: 'Etapa',
+    yourAnswerHere: 'Tu respuesta aquí',
+    validateAnswer: 'Validar mi respuesta',
+    solvedAllRiddles: '¡Has resuelto todos los acertijos!',
     
     // Import
     importTitle: 'Importar una búsqueda del tesoro',
@@ -386,5 +455,20 @@ export const translations: TranslationsType = {
     importSuccess: '¡Búsqueda del tesoro importada con éxito!',
     wrongFileFormat: 'El archivo debe estar en formato JSON',
     expectedFormat: 'Formato esperado',
+    
+    // File formats
+    invalidFileFormat: 'Formato de archivo incorrecto. Por favor, importe un archivo válido de búsqueda del tesoro.',
+    jsonReadError: 'Error al leer el archivo JSON:',
+    requiredElements: 'El archivo JSON debe contener:',
+    titleElement: 'Un título (title)',
+    participantsElement: 'Una lista de participantes (participants)',
+    locationsElement: 'Una lista de ubicaciones (locations)',
+    riddlesElement: 'Una lista de acertijos (riddles)',
+    or: 'o',
+    
+    // PDF generation translations
+    hello: 'Hola',
+    findSecretCode: 'Para encontrar tu código secreto, debes ir a un lugar específico.',
+    clueToFindLocation: 'Aquí está la pista para encontrar este lugar:'
   }
 };

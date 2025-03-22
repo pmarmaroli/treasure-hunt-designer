@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Gift, User, ArrowLeft, MapPin, PlayCircle, CheckCircle } from 'lucide-react';
+import { useLanguage } from './contexts/LanguageContext';
+import FormattedText from './components/FormattedText';
 
 type Participant = {
     name: string;
@@ -36,6 +38,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
     treasureHunt,
     onBack,
 }) => {
+    const { t } = useLanguage();
     const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
     const [currentStep, setCurrentStep] = useState<'start' | 'location' | 'riddle' | 'code' | 'result'>('start');
     const [currentLocationIndex, setCurrentLocationIndex] = useState(0);
@@ -81,7 +84,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
             setErrorMessage('');
             setCurrentStep('riddle');
         } else {
-            setErrorMessage('Ce n\'est pas le bon lieu. Essaie encore!');
+            setErrorMessage(t('wrongLocation'));
             setTimeout(() => setErrorMessage(''), 3000);
         }
     };
@@ -112,7 +115,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                 setCurrentStep('location');
             }
         } else {
-            setErrorMessage('Ce n\'est pas la bonne réponse. Réfléchis bien!');
+            setErrorMessage(t('wrongAnswer'));
             setTimeout(() => setErrorMessage(''), 3000);
         }
     };
@@ -126,7 +129,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
             setCurrentStep('result');
             setMessage(selectedParticipant.secret);
         } else {
-            setErrorMessage('Code incorrect. Vérifie les chiffres que tu as collectés!');
+            setErrorMessage(t('wrongCode'));
             setTimeout(() => setErrorMessage(''), 3000);
         }
     };
@@ -148,7 +151,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
         if (!selectedParticipant) {
             return (
                 <div>
-                    <p className="text-amber-100 mb-6">Sélectionne un participant pour commencer le test:</p>
+                    <p className="text-amber-100 mb-6">{t('selectParticipant')}</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {treasureHunt.participants.map((participant) => (
                             <button
@@ -178,12 +181,17 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
 
                 return (
                     <div className="rounded-xl p-6 shadow-lg border-2 border-amber-300 bg-gradient-to-b from-amber-50 to-amber-100">
-                        <h3 className="text-2xl font-bold text-emerald-800 mb-4">Instructions de départ pour {selectedParticipant.name}</h3>
+                        <h3 className="text-2xl font-bold text-emerald-800 mb-4">
+                            <FormattedText
+                                id="startHuntInstructions"
+                                values={{ name: selectedParticipant.name }}
+                            />
+                        </h3>
 
                         <div className="mb-6 p-4 bg-white rounded-lg border border-amber-200">
-                            <p className="text-emerald-800">Bonjour {selectedParticipant.name} !</p>
-                            <p className="mt-3 text-emerald-800">Pour trouver ton code secret, tu dois te rendre à un certain endroit.</p>
-                            <p className="mt-3 text-emerald-800 font-medium">Voici l'indice pour trouver cet endroit:</p>
+                            <p className="text-emerald-800">{t('hello')} {selectedParticipant.name}!</p>
+                            <p className="mt-3 text-emerald-800">{t('findSecretCode')}</p>
+                            <p className="mt-3 text-emerald-800 font-medium">{t('clueToFindLocation')}</p>
                             <p className="mt-2 p-3 bg-amber-50 rounded-lg text-emerald-700 italic border border-amber-100">{firstLocationClue}</p>
                         </div>
 
@@ -193,7 +201,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                          hover:bg-emerald-800 transition-colors duration-300 font-medium flex items-center justify-center"
                         >
                             <PlayCircle className="mr-2 w-5 h-5" />
-                            Commencer la chasse au trésor
+                            {t('startHunt')}
                         </button>
                     </div>
                 );
@@ -206,26 +214,23 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                     <div className="rounded-xl p-6 shadow-lg border-2 border-amber-300 bg-gradient-to-b from-amber-50 to-amber-100">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold text-emerald-800">
-                                Étape {circuitPosition + 1}/{selectedParticipant.circuit.length}
+                                {t('step')} {circuitPosition + 1}/{selectedParticipant.circuit.length}
                             </h3>
-                            {/* <div className="text-sm bg-amber-200 px-3 py-1 rounded-full text-emerald-700">
-                                Chiffres collectés: {collectedDigits.join(' ')}
-                            </div> */}
                         </div>
 
                         <div className="mb-6 p-4 bg-white rounded-lg border border-amber-200">
                             <div className="flex items-center mb-2">
                                 <MapPin className="text-emerald-700 w-5 h-5 mr-2" />
-                                <h4 className="font-bold text-emerald-700">Trouve le lieu</h4>
+                                <h4 className="font-bold text-emerald-700">{t('findLocation')}</h4>
                             </div>
-                            <p className="mt-2 text-emerald-800">Indice:</p>
+                            <p className="mt-2 text-emerald-800">{t('clue')}:</p>
                             <p className="mt-1 p-3 bg-amber-50 rounded-lg text-emerald-700 italic border border-amber-100">{locationClue}</p>
                         </div>
 
                         <form onSubmit={handleLocationGuessSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-emerald-900 mb-2 font-medium">
-                                    Quel est ce lieu?
+                                    {t('whatIsLocation')}
                                 </label>
                                 <input
                                     type="text"
@@ -250,7 +255,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                            ${!locationGuess.trim() ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-emerald-700 text-amber-100 hover:bg-emerald-800'} 
                            transition-colors duration-300`}
                             >
-                                Vérifier le lieu
+                                {t('checkLocation')}
                             </button>
                         </form>
                     </div>
@@ -264,17 +269,17 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                     <div className="rounded-xl p-6 shadow-lg border-2 border-amber-300 bg-gradient-to-b from-amber-50 to-amber-100">
                         <div className="flex justify-between items-center mb-4">
                             <h3 className="text-xl font-bold text-emerald-800">
-                                Étape {circuitPosition + 1}/{selectedParticipant.circuit.length}
+                                {t('step')} {circuitPosition + 1}/{selectedParticipant.circuit.length}
                             </h3>
                             <div className="text-sm bg-amber-200 px-3 py-1 rounded-full text-emerald-700">
-                                Chiffres collectés: {collectedDigits.join(' ')}
+                                {t('collectedDigits')}: {collectedDigits.join(' ')}
                             </div>
                         </div>
 
                         <div className="mb-6 p-4 bg-white rounded-lg border border-amber-200">
-                            <p className="text-emerald-800 mb-3">Bravo! Tu as trouvé le bon lieu.</p>
+                            <p className="text-emerald-800 mb-3">{t('correctLocation')}</p>
                             <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
-                                <p className="text-emerald-700 font-medium">Voici ton énigme:</p>
+                                <p className="text-emerald-700 font-medium">{t('hereIsRiddle')}</p>
                                 <p className="mt-2 text-emerald-800 italic">{riddle.text}</p>
                             </div>
                         </div>
@@ -282,14 +287,14 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                         <form onSubmit={handleRiddleAnswerSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-emerald-900 mb-2 font-medium">
-                                    Quelle est ta réponse?
+                                    {t('whatIsAnswer')}
                                 </label>
                                 <input
                                     type="text"
                                     value={riddleAnswer}
                                     onChange={(e) => setRiddleAnswer(e.target.value)}
                                     className={`w-full p-3 border-2 rounded-lg ${errorMessage ? 'border-red-500' : 'border-emerald-300 focus:border-emerald-500'} bg-amber-50`}
-                                    placeholder="Ta réponse ici"
+                                    placeholder={t('yourAnswerHere')}
                                     autoFocus
                                 />
                             </div>
@@ -307,7 +312,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                            ${!riddleAnswer.trim() ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-emerald-700 text-amber-100 hover:bg-emerald-800'} 
                            transition-colors duration-300`}
                             >
-                                Valider ma réponse
+                                {t('validateAnswer')}
                             </button>
                         </form>
                     </div>
@@ -317,13 +322,13 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
             case 'code': {
                 return (
                     <div className="rounded-xl p-6 shadow-lg border-2 border-amber-300 bg-gradient-to-b from-amber-50 to-amber-100">
-                        <h3 className="text-2xl font-bold text-emerald-800 mb-4">Saisie du code final</h3>
+                        <h3 className="text-2xl font-bold text-emerald-800 mb-4">{t('finalCodeEntry')}</h3>
 
                         <div className="mb-6 p-4 bg-white rounded-lg border border-amber-200">
-                            <p className="text-emerald-800 mb-3">Bravo {selectedParticipant.name}! Tu as résolu toutes les énigmes!</p>
+                            <p className="text-emerald-800 mb-3">{t('congratulations')} {selectedParticipant.name}! {t('solvedAllRiddles')}</p>
 
                             <p className="text-emerald-800 mb-3">
-                                Pour obtenir le code secret, tu dois suivre les instructions ci-dessous pour chaque lieu visité:
+                                {t('followInstructions')}
                             </p>
 
                             <div className="space-y-2 mb-4">
@@ -338,7 +343,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                             </div>
 
                             <div className="bg-emerald-100 p-3 rounded-lg text-center">
-                                <p className="text-emerald-800 font-medium">Chiffres collectés:</p>
+                                <p className="text-emerald-800 font-medium">{t('collectedDigits')}:</p>
                                 <div className="flex justify-center gap-2 mt-2">
                                     {collectedDigits.map((digit, idx) => (
                                         <span key={idx} className="w-8 h-8 flex items-center justify-center bg-white border-2 border-emerald-300 rounded-lg font-mono font-bold text-emerald-700">
@@ -352,7 +357,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                         <form onSubmit={handleCodeSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-emerald-900 mb-2 font-medium">
-                                    Entre le code secret:
+                                    {t('enterSecretCode')}
                                 </label>
                                 <input
                                     type="text"
@@ -381,7 +386,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                            transition-colors duration-300`}
                             >
                                 <Gift className="mr-2 w-5 h-5" />
-                                Valider le code
+                                {t('validateCode')}
                             </button>
                         </form>
                     </div>
@@ -397,7 +402,12 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                             </div>
                         </div>
 
-                        <h3 className="text-2xl font-bold text-emerald-800 mb-4 text-center">Félicitations {selectedParticipant.name}!</h3>
+                        <h3 className="text-2xl font-bold text-emerald-800 mb-4 text-center">
+                            <FormattedText
+                                id="secretRevealed"
+                                values={{ name: selectedParticipant.name, location: '' }}
+                            />
+                        </h3>
 
                         <div className="p-5 bg-white rounded-lg border border-amber-200 mb-6">
                             <p className="text-lg text-emerald-800 animate-reveal font-medium text-center">
@@ -410,7 +420,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                                 onClick={resetGame}
                                 className="bg-amber-500 text-white py-3 px-6 rounded-lg hover:bg-amber-600 transition-colors flex items-center"
                             >
-                                Recommencer
+                                {t('restart')}
                             </button>
                         </div>
                     </div>
@@ -430,10 +440,10 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                     className="mr-4 text-amber-300 hover:text-amber-200 flex items-center font-medium"
                 >
                     <ArrowLeft className="mr-2 w-4 h-4" />
-                    Retour
+                    {t('back')}
                 </button>
                 <h2 className="text-3xl font-bold text-amber-300">
-                    {treasureHunt.title} - Mode Test
+                    {treasureHunt.title} - {t('virtualTest')}
                 </h2>
             </div>
 

@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Gift, User, ArrowLeft } from 'lucide-react';
+import { useLanguage } from './contexts/LanguageContext';
+import FormattedText from './components/FormattedText';
 
 type Participant = {
     name: string;
@@ -19,6 +21,7 @@ const TreasureHuntGame: React.FC<TreasureHuntGameProps> = ({
     participants,
     onBack
 }) => {
+    const { t } = useLanguage();
     const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
     const [code, setCode] = useState('');
     const [error, setError] = useState(false);
@@ -50,7 +53,7 @@ const TreasureHuntGame: React.FC<TreasureHuntGameProps> = ({
                     className="mr-4 text-amber-300 hover:text-amber-200 flex items-center font-medium"
                 >
                     <ArrowLeft className="mr-2 w-4 h-4" />
-                    Retour
+                    {t('back')}
                 </button>
                 <h2 className="text-3xl font-bold text-amber-300">
                     {title}
@@ -59,7 +62,7 @@ const TreasureHuntGame: React.FC<TreasureHuntGameProps> = ({
 
             {!selectedParticipant ? (
                 <div>
-                    <p className="text-amber-100 mb-6">Sélectionne ton prénom pour commencer:</p>
+                    <p className="text-amber-100 mb-6">{t('selectParticipant')}</p>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {participants.map((participant) => (
                             <button
@@ -92,7 +95,7 @@ const TreasureHuntGame: React.FC<TreasureHuntGameProps> = ({
                         className="mb-4 text-emerald-800 hover:text-emerald-900 flex items-center font-medium"
                     >
                         <ArrowLeft className="mr-2 w-4 h-4" />
-                        Retour
+                        {t('back')}
                     </button>
 
                     <h3 className="text-2xl font-bold text-emerald-800 mb-6 text-center">
@@ -103,15 +106,18 @@ const TreasureHuntGame: React.FC<TreasureHuntGameProps> = ({
                         <form onSubmit={handleSubmit} className="space-y-4">
                             <div>
                                 <label className="block text-emerald-900 mb-2 font-medium">
-                                    Entre ton code secret à {selectedParticipant.code.length} chiffres:
+                                    <FormattedText
+                                        id="enterCode"
+                                        values={{ length: selectedParticipant.code.length }}
+                                    />
                                 </label>
                                 <input
                                     type="text"
                                     value={code}
                                     onChange={(e) => setCode(e.target.value)}
                                     className={`w-full p-3 border-2 rounded-lg ${error
-                                            ? 'border-red-500 animate-shake'
-                                            : 'border-emerald-300 focus:border-emerald-500'
+                                        ? 'border-red-500 animate-shake'
+                                        : 'border-emerald-300 focus:border-emerald-500'
                                         } bg-amber-50`}
                                     maxLength={selectedParticipant.code.length}
                                     pattern="[0-9]*"
@@ -125,7 +131,7 @@ const TreasureHuntGame: React.FC<TreasureHuntGameProps> = ({
                         hover:bg-emerald-800 transition-colors duration-300 font-medium flex items-center justify-center"
                             >
                                 <Gift className="mr-2 w-5 h-5" />
-                                Valider
+                                {t('validate')}
                             </button>
                         </form>
                     ) : (

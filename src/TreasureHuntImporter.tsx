@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, AlertCircle, ArrowLeft, Check } from 'lucide-react';
+import { useLanguage } from './contexts/LanguageContext';
 
 type Participant = {
     name: string;
@@ -33,6 +34,7 @@ type ImporterProps = {
 };
 
 const TreasureHuntImporter: React.FC<ImporterProps> = ({ onImport, onCancel }) => {
+    const { t } = useLanguage();
     const [isDragging, setIsDragging] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
@@ -68,7 +70,7 @@ const TreasureHuntImporter: React.FC<ImporterProps> = ({ onImport, onCancel }) =
 
     const processFile = (file: File) => {
         if (file.type !== 'application/json') {
-            setError('Le fichier doit être au format JSON');
+            setError(t('wrongFileFormat'));
             return;
         }
 
@@ -83,7 +85,7 @@ const TreasureHuntImporter: React.FC<ImporterProps> = ({ onImport, onCancel }) =
                     !Array.isArray(treasureHunt.participants) ||
                     !Array.isArray(treasureHunt.locations) ||
                     !Array.isArray(treasureHunt.riddles)) {
-                    setError('Format de fichier incorrect. Veuillez importer un fichier de chasse au trésor valide.');
+                    setError(t('invalidFileFormat'));
                     return;
                 }
 
@@ -95,7 +97,7 @@ const TreasureHuntImporter: React.FC<ImporterProps> = ({ onImport, onCancel }) =
                 }, 1000);
 
             } catch (err) {
-                setError(`Erreur lors de la lecture du fichier JSON: ${err instanceof Error ? err.message : String(err)}`);
+                setError(`${t('jsonReadError')} ${err instanceof Error ? err.message : String(err)}`);
             }
         };
 
@@ -114,10 +116,10 @@ const TreasureHuntImporter: React.FC<ImporterProps> = ({ onImport, onCancel }) =
                     className="mr-4 text-amber-300 hover:text-amber-200 flex items-center font-medium"
                 >
                     <ArrowLeft className="mr-2 w-4 h-4" />
-                    Retour
+                    {t('back')}
                 </button>
                 <h2 className="text-3xl font-bold text-amber-300">
-                    Importer une chasse au trésor
+                    {t('importTitle')}
                 </h2>
             </div>
 
@@ -147,7 +149,7 @@ const TreasureHuntImporter: React.FC<ImporterProps> = ({ onImport, onCancel }) =
                         <div className="bg-green-700 rounded-full p-3 mb-4">
                             <Check className="w-10 h-10 text-white" />
                         </div>
-                        <p className="text-xl font-medium">Chasse au trésor importée avec succès!</p>
+                        <p className="text-xl font-medium">{t('importSuccess')}</p>
                     </div>
                 ) : (
                     <>
@@ -155,14 +157,14 @@ const TreasureHuntImporter: React.FC<ImporterProps> = ({ onImport, onCancel }) =
                             <Upload className="w-16 h-16 text-amber-200" />
                         </div>
                         <h3 className="text-xl font-bold text-amber-100 mb-2">
-                            Glissez et déposez votre fichier JSON ici
+                            {t('dragDropJSON')}
                         </h3>
-                        <p className="text-amber-200 mb-6">ou</p>
+                        <p className="text-amber-200 mb-6">{t('or')}</p>
                         <button
                             onClick={handleButtonClick}
                             className="bg-amber-500 text-white py-3 px-6 rounded-lg hover:bg-amber-600 transition-colors"
                         >
-                            Parcourir les fichiers
+                            {t('browseFiles')}
                         </button>
                     </>
                 )}
@@ -176,13 +178,13 @@ const TreasureHuntImporter: React.FC<ImporterProps> = ({ onImport, onCancel }) =
             )}
 
             <div className="bg-amber-900 bg-opacity-20 border border-amber-300 rounded-lg p-4 text-amber-100">
-                <h3 className="font-bold mb-2">Format attendu</h3>
-                <p className="mb-2">Le fichier JSON doit contenir:</p>
+                <h3 className="font-bold mb-2">{t('expectedFormat')}</h3>
+                <p className="mb-2">{t('requiredElements')}</p>
                 <ul className="list-disc pl-5 space-y-1">
-                    <li>Un titre (title)</li>
-                    <li>Une liste de participants (participants)</li>
-                    <li>Une liste de lieux (locations)</li>
-                    <li>Une liste d'énigmes (riddles)</li>
+                    <li>{t('titleElement')}</li>
+                    <li>{t('participantsElement')}</li>
+                    <li>{t('locationsElement')}</li>
+                    <li>{t('riddlesElement')}</li>
                 </ul>
             </div>
         </div>

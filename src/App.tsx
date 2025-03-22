@@ -49,7 +49,7 @@ type TreasureHunt = {
 };
 
 function App() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [appMode, setAppMode] = useState<AppMode>('selection');
   const [selectedChild, setSelectedChild] = useState<Child | null>(null);
   const [code, setCode] = useState('');
@@ -138,11 +138,55 @@ function App() {
 
   // New handlers for treasure hunt creation
   const nextStep = () => {
-    setCreateStep(prevStep => prevStep + 1);
+    if (createStep < 5) {
+      setCreateStep(prevStep => prevStep + 1);
+    }
   };
 
   const prevStep = () => {
-    setCreateStep(prevStep => Math.max(1, prevStep - 1));
+    if (createStep > 1) {
+      setCreateStep(prevStep => Math.max(1, prevStep - 1));
+
+      // Reset current index based on which step we're returning to
+      if (createStep === 3) {
+        setCurrentParticipantIndex(treasureHunt.participants.length - 1);
+      } else if (createStep === 4) {
+        setCurrentLocationIndex(treasureHunt.locations.length - 1);
+      } else if (createStep === 5) {
+        setCurrentRiddleIndex(treasureHunt.riddles.length - 1);
+      }
+    }
+  };
+
+  const editEntry = (type: 'participant' | 'location' | 'riddle', index: number) => {
+    if (type === 'participant') {
+      setTempParticipant({ ...treasureHunt.participants[index] });
+      setCurrentParticipantIndex(index);
+
+      // Update participants array by removing the one being edited
+      setTreasureHunt(prev => ({
+        ...prev,
+        participants: prev.participants.filter((_, i) => i !== index)
+      }));
+    } else if (type === 'location') {
+      setTempLocation({ ...treasureHunt.locations[index] });
+      setCurrentLocationIndex(index);
+
+      // Update locations array by removing the one being edited
+      setTreasureHunt(prev => ({
+        ...prev,
+        locations: prev.locations.filter((_, i) => i !== index)
+      }));
+    } else if (type === 'riddle') {
+      setTempRiddle({ ...treasureHunt.riddles[index] });
+      setCurrentRiddleIndex(index);
+
+      // Update riddles array by removing the one being edited
+      setTreasureHunt(prev => ({
+        ...prev,
+        riddles: prev.riddles.filter((_, i) => i !== index)
+      }));
+    }
   };
 
   const updateTreasureHuntTitle = (title: string) => {
@@ -196,37 +240,37 @@ function App() {
       tempRiddle.instruction.trim() &&
       tempRiddle.digit.trim()
     ) {
+      // Ajouter l'énigme à la liste
       setTreasureHunt(prev => ({
         ...prev,
         riddles: [...prev.riddles, tempRiddle],
       }));
 
+      // Réinitialiser le formulaire
       setTempRiddle({ text: '', answer: '', instruction: '', digit: '' });
 
-      if (treasureHunt.riddles.length + 1 === riddleCount) {
-        generateTreasureHunt();
-      } else {
-        setCurrentRiddleIndex(prev => prev + 1);
-      }
+      // Avancer l'index pour la prochaine énigme
+      setCurrentRiddleIndex(prev => prev + 1);
     }
   };
 
   // Function to generate random circuits and codes for each participant
   const generateTreasureHunt = () => {
-    const huntCopy = { ...treasureHunt };
+    // Utiliser une copie profonde pour éviter les problèmes de référence
+    const huntCopy = JSON.parse(JSON.stringify(treasureHunt));
 
-    // Generate random circuits for each participant
-    huntCopy.participants = huntCopy.participants.map(participant => {
-      // Create a random order of locations
+    // Générer des circuits aléatoires pour chaque participant
+    huntCopy.participants = huntCopy.participants.map((participant: Participant) => {
+      // Créer un ordre aléatoire des lieux
       const locationIndices = Array.from({ length: riddleCount }, (_, i) => i);
 
-      // Fisher-Yates shuffle algorithm
+      // Algorithme de mélange Fisher-Yates
       for (let i = locationIndices.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [locationIndices[i], locationIndices[j]] = [locationIndices[j], locationIndices[i]];
       }
 
-      // Generate code based on the circuit
+      // Générer le code basé sur le circuit
       const code = locationIndices.map(locIndex => huntCopy.riddles[locIndex].digit).join('');
 
       return {
@@ -236,9 +280,14 @@ function App() {
       };
     });
 
+    console.log("Hunt generated:", huntCopy);
+
+    // Mise à jour de l'état avec la chasse au trésor générée
     setTreasureHunt(huntCopy);
     setHuntCreated(true);
-    nextStep();
+
+    // Passer à l'étape 5
+    setCreateStep(5);
   };
 
   const generateJsonFile = () => {
@@ -313,7 +362,7 @@ function App() {
 
   // Generate PDF files using the imported function
   const handleGeneratePDFs = () => {
-    generateTreasureHuntPDFs(treasureHunt);
+    generateTreasureHuntPDFs(treasureHunt, language);
   };
 
   // This is the fixed version of the renderCreateStep function in App.tsx
@@ -393,7 +442,10 @@ function App() {
             <h2 className="text-2xl font-bold text-emerald-800 mb-6">
               <FormattedText
                 id="step2Title"
-                values={{ current: (currentParticipantIndex + 1).toString(), total: participantCount.toString() }}
+                values={{
+                  current: Math.min((currentParticipantIndex + 1), participantCount).toString(),
+                  total: participantCount.toString()
+                }}
               />
             </h2>
 
@@ -430,8 +482,16 @@ function App() {
                 <h3 className="text-lg font-semibold text-emerald-800 mb-2">{t('participants')} :</h3>
                 <ul className="bg-amber-50 rounded-lg p-3 border-2 border-amber-200">
                   {treasureHunt.participants.map((p, idx) => (
-                    <li key={idx} className="mb-2 pb-2 border-b border-amber-100 last:border-0 last:mb-0 last:pb-0">
-                      <strong>{p.name}</strong>: {p.secret}
+                    <li key={idx} className="mb-2 pb-2 border-b border-amber-100 last:border-0 last:mb-0 last:pb-0 flex justify-between items-center">
+                      <div>
+                        <strong>{p.name}</strong>: {p.secret}
+                      </div>
+                      <button
+                        onClick={() => editEntry('participant', idx)}
+                        className="ml-2 text-emerald-700 hover:text-emerald-900"
+                      >
+                        ✏️ {t('edit')}
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -446,14 +506,25 @@ function App() {
                 <ArrowLeft className="mr-2 w-4 h-4" />
                 {t('previous')}
               </button>
-              <button
-                onClick={addParticipant}
-                disabled={!tempParticipant.name || !tempParticipant.secret}
-                className={`bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg ${!tempParticipant.name || !tempParticipant.secret ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-800'
-                  } transition-colors`}
-              >
-                {treasureHunt.participants.length + 1 === participantCount ? t('addAndContinue') : t('addParticipant')}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={addParticipant}
+                  disabled={!tempParticipant.name || !tempParticipant.secret}
+                  className={`bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg ${!tempParticipant.name || !tempParticipant.secret ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-800'
+                    } transition-colors`}
+                >
+                  {t('addParticipant')}
+                </button>
+                {treasureHunt.participants.length >= participantCount && (
+                  <button
+                    onClick={nextStep}
+                    className="bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg hover:bg-emerald-800 transition-colors flex items-center"
+                  >
+                    {t('next')}
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -464,7 +535,10 @@ function App() {
             <h2 className="text-2xl font-bold text-emerald-800 mb-6">
               <FormattedText
                 id="step3Title"
-                values={{ current: (currentLocationIndex + 1).toString(), total: riddleCount.toString() }}
+                values={{
+                  current: Math.min((currentLocationIndex + 1), riddleCount).toString(),
+                  total: riddleCount.toString()
+                }}
               />
             </h2>
 
@@ -501,8 +575,16 @@ function App() {
                 <h3 className="text-lg font-semibold text-emerald-800 mb-2">{t('locations')} :</h3>
                 <ul className="bg-amber-50 rounded-lg p-3 border-2 border-amber-200">
                   {treasureHunt.locations.map((loc, idx) => (
-                    <li key={idx} className="mb-2 pb-2 border-b border-amber-100 last:border-0 last:mb-0 last:pb-0">
-                      <strong>{loc.name}</strong>: {loc.clue}
+                    <li key={idx} className="mb-2 pb-2 border-b border-amber-100 last:border-0 last:mb-0 last:pb-0 flex justify-between items-center">
+                      <div>
+                        <strong>{loc.name}</strong>: {loc.clue}
+                      </div>
+                      <button
+                        onClick={() => editEntry('location', idx)}
+                        className="ml-2 text-emerald-700 hover:text-emerald-900"
+                      >
+                        ✏️ {t('edit')}
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -517,14 +599,25 @@ function App() {
                 <ArrowLeft className="mr-2 w-4 h-4" />
                 {t('previous')}
               </button>
-              <button
-                onClick={addLocation}
-                disabled={!tempLocation.name || !tempLocation.clue}
-                className={`bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg ${!tempLocation.name || !tempLocation.clue ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-800'
-                  } transition-colors`}
-              >
-                {treasureHunt.locations.length + 1 === riddleCount ? t('addAndContinue') : t('addLocation')}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={addLocation}
+                  disabled={!tempLocation.name || !tempLocation.clue}
+                  className={`bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg ${!tempLocation.name || !tempLocation.clue ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-800'
+                    } transition-colors`}
+                >
+                  {t('addLocation')}
+                </button>
+                {treasureHunt.locations.length >= riddleCount && (
+                  <button
+                    onClick={nextStep}
+                    className="bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg hover:bg-emerald-800 transition-colors flex items-center"
+                  >
+                    {t('next')}
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -535,7 +628,10 @@ function App() {
             <h2 className="text-2xl font-bold text-emerald-800 mb-6">
               <FormattedText
                 id="step4Title"
-                values={{ current: (currentRiddleIndex + 1).toString(), total: riddleCount.toString() }}
+                values={{
+                  current: Math.min((currentRiddleIndex + 1), riddleCount).toString(),
+                  total: riddleCount.toString()
+                }}
               />
             </h2>
 
@@ -605,10 +701,18 @@ function App() {
                 <h3 className="text-lg font-semibold text-emerald-800 mb-2">{t('riddles')} :</h3>
                 <ul className="bg-amber-50 rounded-lg p-3 border-2 border-amber-200">
                   {treasureHunt.riddles.map((r, idx) => (
-                    <li key={idx} className="mb-2 pb-2 border-b border-amber-100 last:border-0 last:mb-0 last:pb-0">
-                      <strong>{t('riddles')} {idx + 1}</strong>: {r.text.substring(0, 50)}...
-                      <br />
-                      <span className="text-sm">{t('answer')}: {r.answer} → {t('digit')}: {r.digit}</span>
+                    <li key={idx} className="mb-2 pb-2 border-b border-amber-100 last:border-0 last:mb-0 last:pb-0 flex justify-between items-start">
+                      <div>
+                        <strong>{t('riddles')} {idx + 1}</strong>: {r.text.substring(0, 50)}...
+                        <br />
+                        <span className="text-sm">{t('answer')}: {r.answer} → {t('digit')}: {r.digit}</span>
+                      </div>
+                      <button
+                        onClick={() => editEntry('riddle', idx)}
+                        className="ml-2 text-emerald-700 hover:text-emerald-900"
+                      >
+                        ✏️ {t('edit')}
+                      </button>
                     </li>
                   ))}
                 </ul>
@@ -623,16 +727,28 @@ function App() {
                 <ArrowLeft className="mr-2 w-4 h-4" />
                 {t('previous')}
               </button>
-              <button
-                onClick={addRiddle}
-                disabled={!tempRiddle.text || !tempRiddle.answer || !tempRiddle.instruction || !tempRiddle.digit}
-                className={`bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg ${!tempRiddle.text || !tempRiddle.answer || !tempRiddle.instruction || !tempRiddle.digit
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:bg-emerald-800'
-                  } transition-colors`}
-              >
-                {treasureHunt.riddles.length + 1 === riddleCount ? t('addAndFinalize') : t('addRiddle')}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={addRiddle}
+                  disabled={!tempRiddle.text || !tempRiddle.answer || !tempRiddle.instruction || !tempRiddle.digit}
+                  className={`bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg ${!tempRiddle.text || !tempRiddle.answer || !tempRiddle.instruction || !tempRiddle.digit
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-emerald-800'
+                    } transition-colors`}
+                >
+                  {t('addRiddle')}
+                </button>
+                {treasureHunt.riddles.length >= riddleCount && (
+                  <button
+                    onClick={generateTreasureHunt}
+                    className="bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg hover:bg-emerald-800 transition-colors flex items-center"
+                  >
+                    {t('finalize')}
+                    <ArrowRight className="ml-2 w-4 h-4" />
+                  </button>
+
+                )}
+              </div>
             </div>
           </div>
         );
@@ -709,7 +825,14 @@ function App() {
               </button>
             </div>
 
-            <div className="pt-6 flex justify-center">
+            <div className="pt-6 flex justify-between">
+              <button
+                onClick={prevStep}
+                className="bg-gray-200 text-emerald-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors flex items-center"
+              >
+                <ArrowLeft className="mr-2 w-4 h-4" />
+                {t('previous')}
+              </button>
               <button
                 onClick={returnToSelection}
                 className="bg-amber-500 text-white py-3 px-6 rounded-lg hover:bg-amber-600 transition-colors flex items-center"

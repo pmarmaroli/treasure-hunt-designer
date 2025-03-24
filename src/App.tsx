@@ -906,12 +906,17 @@ function App() {
 
         {appMode === 'selection' ? (
           <div className="flex flex-col items-center justify-center gap-8 max-w-3xl mx-auto">
+            {/* Texte de présentation du concept */}
+            <div className="bg-amber-50 bg-opacity-90 rounded-xl p-6 border-2 border-amber-300 mb-4 text-emerald-800 whitespace-pre-line">
+              <FormattedText id="conceptPresentation" />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <button
                 onClick={handleCreateMode}
                 className="bg-amber-50 rounded-xl p-8 text-2xl font-bold text-emerald-800 shadow-lg 
-         hover:transform hover:scale-105 transition-all duration-300
-         hover:bg-amber-200 hover:text-emerald-900 border-2 border-amber-300 flex flex-col items-center justify-center"
+        hover:transform hover:scale-105 transition-all duration-300
+        hover:bg-amber-200 hover:text-emerald-900 border-2 border-amber-300 flex flex-col items-center justify-center"
                 style={{
                   boxShadow: '0 4px 14px rgba(120, 80, 40, 0.5)',
                   backgroundImage: 'linear-gradient(to bottom right, rgba(245, 222, 179, 0.9), rgba(205, 133, 63, 0.7))',
@@ -925,8 +930,8 @@ function App() {
               <button
                 onClick={handleImportMode}
                 className="bg-amber-50 rounded-xl p-8 text-2xl font-bold text-emerald-800 shadow-lg 
-         hover:transform hover:scale-105 transition-all duration-300
-         hover:bg-amber-200 hover:text-emerald-900 border-2 border-amber-300 flex flex-col items-center justify-center"
+        hover:transform hover:scale-105 transition-all duration-300
+        hover:bg-amber-200 hover:text-emerald-900 border-2 border-amber-300 flex flex-col items-center justify-center"
                 style={{
                   boxShadow: '0 4px 14px rgba(120, 80, 40, 0.5)',
                   backgroundImage: 'linear-gradient(to bottom right, rgba(245, 222, 179, 0.9), rgba(205, 133, 63, 0.7))',
@@ -940,6 +945,7 @@ function App() {
             </div>
           </div>
         ) : appMode === 'import' ? (
+
           <TreasureHuntImporter
             onImport={handleImportedTreasureHunt}
             onCancel={returnToSelection}
@@ -1029,7 +1035,16 @@ function App() {
               )}
             </div>
           )}
+
+
+        {/* Footer avec Powered by Vocametrix - INSÉRER ICI */}
+        <div className="relative z-10 mt-10 text-center text-amber-200 opacity-70 hover:opacity-100 transition-opacity duration-300">
+          <p className="text-sm">
+            Powered by <a href="https://www.vocametrix.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-amber-100 transition-colors">Vocametrix</a>
+          </p>
+        </div>
       </div>
+
 
 
     </div>

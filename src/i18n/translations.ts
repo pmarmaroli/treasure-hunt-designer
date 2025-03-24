@@ -11,6 +11,7 @@ export type TranslationKey =
   | 'createNew'
   | 'import'
   | 'importFile'
+  | 'conceptPresentation'
   
   // Game interaction
   | 'enterCode'
@@ -132,7 +133,14 @@ export const translations: TranslationsType = {
     createNew: 'Créer Nouveau',
     import: 'Importer',
     importFile: 'Charger un fichier existant',
+    conceptPresentation: `Bienvenue sur notre outil de création de chasses au trésor personnalisées !
+
+    Avec cet outil, vous pouvez concevoir des aventures uniques pour plusieurs participants, chacun suivant un parcours distinct. Vous avez la liberté de définir les énigmes, les indices, les réponses et le message final à révéler.
     
+    De notre côté, nous nous chargeons de générer tous les documents nécessaires pour l'impression ainsi que la page web où les participants entreront le code secret qu'ils devront découvrir.
+    
+    Notre système automatise la correspondance entre les participants, leurs parcours et leurs codes secrets, vous permettant ainsi de vous concentrer pleinement sur la création de contenu captivant.`,
+
     // Game interaction
     enterCode: 'Entre ton code secret à {length} chiffres :',
     validate: 'Valider',
@@ -247,7 +255,14 @@ export const translations: TranslationsType = {
     createNew: 'Create New',
     import: 'Import',
     importFile: 'Load an existing file',
-    
+    conceptPresentation: `Welcome to our customized treasure hunt creation tool!
+
+With this tool, you can design unique adventures for multiple participants, each following a distinct path. You have the freedom to define the riddles, clues, answers, and the final message to reveal.
+
+On our side, we take care of generating all the necessary documents for printing as well as the web page where participants will enter the secret code they need to discover.
+
+Our system automates the correspondence between participants, their paths, and their secret codes, allowing you to focus entirely on creating engaging content.`,
+
     // Game interaction
     enterCode: 'Enter your {length}-digit secret code:',
     validate: 'Validate',
@@ -362,7 +377,14 @@ export const translations: TranslationsType = {
     createNew: 'Crear Nuevo',
     import: 'Importar',
     importFile: 'Cargar un archivo existente',
+    conceptPresentation: `¡Bienvenido a nuestra herramienta de creación de búsquedas del tesoro personalizadas!
+
+    Con esta herramienta, puedes diseñar aventuras únicas para varios participantes, cada uno siguiendo un recorrido distinto. Tienes la libertad de definir los acertijos, las pistas, las respuestas y el mensaje final a revelar.
     
+    Por nuestra parte, nos encargamos de generar todos los documentos necesarios para imprimir, así como la página web donde los participantes introducirán el código secreto que deberán descubrir.
+    
+    Nuestro sistema automatiza la correspondencia entre los participantes, sus recorridos y sus códigos secretos, permitiéndote concentrarte plenamente en la creación de contenido cautivador.`,
+
     // Game interaction
     enterCode: 'Introduce tu código secreto de {length} dígitos:',
     validate: 'Validar',

@@ -66,8 +66,8 @@ const pdfTranslations = {
     startInstructionsFile: 'instructions_depart',
     riddlesFile: 'enigmes',
     summaryFile: 'recapitulatif',
-    printAndPlace: 'À imprimer et à placer dans un enveloppe au nom de: ',
-    printAndPlaceCont: ' à l\'endroit suivant: ',
+    printAndPlace: 'Imprimez cette page, placez-la dans une enveloppe adressée à ',
+    printAndPlaceCont: ', puis déposez l\'enveloppe à l\'endroit suivant : ',
   },
   en: {
     startInstructions: 'Starting instructions to give to participants',
@@ -104,8 +104,8 @@ const pdfTranslations = {
     startInstructionsFile: 'starting_instructions',
     riddlesFile: 'riddles',
     summaryFile: 'summary',
-    printAndPlace: 'To print and place in an envelope named: ',
-    printAndPlaceCont: ' at the following location: ',
+    printAndPlace: 'Print this page, place it in an envelope addressed to ',
+    printAndPlaceCont: ', then drop the envelope at the following location: ',
   },
   es: {
     startInstructions: 'Instrucciones iniciales para dar a los participantes',
@@ -142,8 +142,8 @@ const pdfTranslations = {
     startInstructionsFile: 'instrucciones_iniciales',
     riddlesFile: 'acertijos',
     summaryFile: 'resumen',
-    printAndPlace: 'Para imprimir y colocar en un sobre nombrado: ',
-    printAndPlaceCont: ' en la siguiente ubicación: ',
+    printAndPlace: 'Imprime esta página, colócala en un sobre dirigido a ',
+    printAndPlaceCont: ', luego deja el sobre en la siguiente ubicación: ',
   }
 };
 

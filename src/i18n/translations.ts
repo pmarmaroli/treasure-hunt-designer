@@ -8,8 +8,6 @@ export type TranslationKey =
   | 'previous'
   
   // Main menu
-  | 'example'
-  | 'aidExample'
   | 'createNew'
   | 'import'
   | 'importFile'
@@ -131,8 +129,6 @@ export const translations: TranslationsType = {
     previous: 'Précédent',
     
     // Main menu
-    example: 'Exemple',
-    aidExample: 'La Chasse au Trésor de l\'Aïd-el-Fitr',
     createNew: 'Créer Nouveau',
     import: 'Importer',
     importFile: 'Charger un fichier existant',
@@ -248,8 +244,6 @@ export const translations: TranslationsType = {
     previous: 'Previous',
     
     // Main menu
-    example: 'Example',
-    aidExample: 'Eid-al-Fitr Treasure Hunt',
     createNew: 'Create New',
     import: 'Import',
     importFile: 'Load an existing file',
@@ -365,8 +359,6 @@ export const translations: TranslationsType = {
     previous: 'Anterior',
 
     // Main menu
-    example: 'Ejemplo',
-    aidExample: 'Búsqueda del Tesoro de Eid-al-Fitr',
     createNew: 'Crear Nuevo',
     import: 'Importar',
     importFile: 'Cargar un archivo existente',

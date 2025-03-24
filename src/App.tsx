@@ -9,7 +9,7 @@ import { useLanguage } from './contexts/LanguageContext';
 import LanguageSelector from './components/LanguageSelector';
 import FormattedText from './components/FormattedText';
 
-type AppMode = 'selection' | 'example' | 'create' | 'import';
+type AppMode = 'selection' | 'create' | 'import';
 
 // Different test modes
 type TestMode = 'simple' | 'virtual';
@@ -385,7 +385,7 @@ function App() {
                   value={treasureHunt.title}
                   onChange={(e) => updateTreasureHuntTitle(e.target.value)}
                   className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-amber-50"
-                  placeholder="Ex: Chasse au trésor de l'Aïd"
+
                 />
               </div>
 

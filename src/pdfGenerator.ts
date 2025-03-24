@@ -32,11 +32,11 @@ type TreasureHunt = {
 // Traductions pour les PDF
 const pdfTranslations = {
   fr: {
-    startInstructions: 'Instructions de départ',
+    startInstructions: 'Instructions de départ à donner aux participants',
     for: 'Pour:',
     hello: 'Bonjour',
-    findSecretCode: 'Pour trouver ton code secret, tu dois te rendre à un certain endroit.',
-    clueToFindLocation: 'Voici l\'indice pour trouver cet endroit:',
+    findSecretCode: 'Ton aventure commence en te rendant dans un lieu précis.',
+    clueToFindLocation: 'Indice pour trouver ce lieu:',
     riddleFor: 'Énigme pour:',
     dear: 'Cher(e)',
     riddleNumber: 'Voici ton énigme numéro',
@@ -65,14 +65,16 @@ const pdfTranslations = {
     digit: 'Chiffre:',
     startInstructionsFile: 'instructions_depart',
     riddlesFile: 'enigmes',
-    summaryFile: 'recapitulatif'
+    summaryFile: 'recapitulatif',
+    printAndPlace: 'À imprimer et à placer dans un enveloppe au nom de: ',
+    printAndPlaceCont: ' à l\'endroit suivant: ',
   },
   en: {
-    startInstructions: 'Starting Instructions',
+    startInstructions: 'Starting instructions to give to participants',
     for: 'For:',
     hello: 'Hello',
-    findSecretCode: 'To find your secret code, you need to go to a specific location.',
-    clueToFindLocation: 'Here is the clue to find this location:',
+    findSecretCode: 'Your adventure begins by going to a specific location.',
+    clueToFindLocation: 'Clue to find this location:',
     riddleFor: 'Riddle for:',
     dear: 'Dear',
     riddleNumber: 'Here is your riddle number',
@@ -101,14 +103,16 @@ const pdfTranslations = {
     digit: 'Digit:',
     startInstructionsFile: 'starting_instructions',
     riddlesFile: 'riddles',
-    summaryFile: 'summary'
+    summaryFile: 'summary',
+    printAndPlace: 'To print and place in an envelope named: ',
+    printAndPlaceCont: ' at the following location: ',
   },
   es: {
-    startInstructions: 'Instrucciones iniciales',
+    startInstructions: 'Instrucciones iniciales para dar a los participantes',
     for: 'Para:',
     hello: 'Hola',
-    findSecretCode: 'Para encontrar tu código secreto, debes ir a un lugar específico.',
-    clueToFindLocation: 'Aquí está la pista para encontrar este lugar:',
+    findSecretCode: 'Tu aventura comienza yendo a un lugar específico.',
+    clueToFindLocation: 'Pista para encontrar este lugar:',
     riddleFor: 'Acertijo para:',
     dear: 'Estimado/a',
     riddleNumber: 'Aquí está tu acertijo número',
@@ -137,7 +141,9 @@ const pdfTranslations = {
     digit: 'Dígito:',
     startInstructionsFile: 'instrucciones_iniciales',
     riddlesFile: 'acertijos',
-    summaryFile: 'resumen'
+    summaryFile: 'resumen',
+    printAndPlace: 'Para imprimir y colocar en un sobre nombrado: ',
+    printAndPlaceCont: ' en la siguiente ubicación: ',
   }
 };
 
@@ -266,7 +272,8 @@ const generateRiddleSheetsPDF = (treasureHunt: TreasureHunt, language: Language)
       // Add footer with participant name, page number, and location
       const location = treasureHunt.locations[locationIndex];
       doc.setFontSize(10);
-      doc.text(`${participant.name} - ${texts.page} ${circuitIndex + 1}/${participant.circuit.length} - ${texts.location} ${location.name}`, 105, 280, { align: 'center' });
+      doc.text(`${texts.page} ${circuitIndex + 1}/${participant.circuit.length} - ${texts.printAndPlace} ${participant.name} ${texts.printAndPlaceCont} ${location.name}`, 105, 280, { align: 'center' });
+
     });
   });
   

@@ -1031,14 +1031,7 @@ function App() {
           )}
       </div>
 
-      {/* Footer decoration - Islamic arch pattern */}
-      <div className="absolute bottom-0 left-0 right-0 h-12 bg-amber-300 bg-opacity-20 overflow-hidden">
-        <div className="flex justify-center">
-          {[...Array(20)].map((_, i) => (
-            <div key={i} className="w-10 h-12 border-t-0 border-l-2 border-r-2 border-b-0 border-amber-300 border-opacity-40 rounded-t-full"></div>
-          ))}
-        </div>
-      </div>
+
     </div>
   );
 }

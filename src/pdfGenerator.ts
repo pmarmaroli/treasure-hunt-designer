@@ -44,6 +44,7 @@ const pdfTranslations = {
     followInstructions: 'suis ces instructions:',
     goToNextLocation: 'rends-toi à ton prochain lieu.',
     toFindSecretCode: 'Pour trouver ton code secret, suis ces instructions:',
+    withAnswer: 'Avec ta réponse', // Added for the new format
     toFindNextLocation: 'Pour trouver ton prochain lieu, suis cet indice:',
     page: 'Page',
     location: 'Lieu:',
@@ -67,7 +68,7 @@ const pdfTranslations = {
     riddlesFile: 'enigmes',
     summaryFile: 'recapitulatif',
     printAndPlace: 'Imprimez cette page, placez-la dans une enveloppe adressée à ',
-    printAndPlaceCont: ', puis déposez l\'enveloppe à l\'endroit suivant : ',
+    printAndPlaceCont: ', puis déposez à l\'endroit suivant : ',
   },
   en: {
     startInstructions: 'Starting instructions to give to participants',
@@ -82,6 +83,7 @@ const pdfTranslations = {
     followInstructions: 'follow these instructions:',
     goToNextLocation: 'go to your next location.',
     toFindSecretCode: 'To find your secret code, follow these instructions:',
+    withAnswer: 'With your answer', // Added for the new format
     toFindNextLocation: 'To find your next location, follow this clue:',
     page: 'Page',
     location: 'Location:',
@@ -105,7 +107,7 @@ const pdfTranslations = {
     riddlesFile: 'riddles',
     summaryFile: 'summary',
     printAndPlace: 'Print this page, place it in an envelope addressed to ',
-    printAndPlaceCont: ', then drop the envelope at the following location: ',
+    printAndPlaceCont: ', then drop it at the following location: ',
   },
   es: {
     startInstructions: 'Instrucciones iniciales para dar a los participantes',
@@ -120,6 +122,7 @@ const pdfTranslations = {
     followInstructions: 'sigue estas instrucciones:',
     goToNextLocation: 've a tu próxima ubicación.',
     toFindSecretCode: 'Para encontrar tu código secreto, sigue estas instrucciones:',
+    withAnswer: 'Con tu respuesta', // Added for the new format
     toFindNextLocation: 'Para encontrar tu próxima ubicación, sigue esta pista:',
     page: 'Página',
     location: 'Ubicación:',
@@ -143,7 +146,7 @@ const pdfTranslations = {
     riddlesFile: 'acertijos',
     summaryFile: 'resumen',
     printAndPlace: 'Imprime esta página, colócala en un sobre dirigido a ',
-    printAndPlaceCont: ', luego deja el sobre en la siguiente ubicación: ',
+    printAndPlaceCont: ', luego deja en la siguiente ubicación: ',
   }
 };
 
@@ -251,9 +254,10 @@ const generateRiddleSheetsPDF = (treasureHunt: TreasureHunt, language: Language)
         doc.text(texts.toFindSecretCode, 20, y);
         y += 10;
         
+        // Modified section to reference which riddle answer each instruction applies to
         participant.circuit.forEach((locIdx, idx) => {
           const instruction = treasureHunt.riddles[locIdx].instruction;
-          const wrappedInstruction = doc.splitTextToSize(`${idx + 1}. ${instruction}`, 160);
+          const wrappedInstruction = doc.splitTextToSize(`${texts.withAnswer} ${idx + 1}: ${instruction}`, 160);
           doc.text(wrappedInstruction, 25, y);
           y += wrappedInstruction.length * 7;
         });
@@ -272,7 +276,7 @@ const generateRiddleSheetsPDF = (treasureHunt: TreasureHunt, language: Language)
       // Add footer with participant name, page number, and location
       const location = treasureHunt.locations[locationIndex];
       doc.setFontSize(10);
-      doc.text(`${texts.page} ${circuitIndex + 1}/${participant.circuit.length} - ${texts.printAndPlace} ${participant.name} ${texts.printAndPlaceCont} ${location.name}`, 105, 280, { align: 'center' });
+      doc.text(`${texts.page} ${circuitIndex + 1}/${participant.circuit.length} - ${texts.printAndPlace} ${participant.name}${texts.printAndPlaceCont} ${location.name}`, 105, 280, { align: 'center' });
 
     });
   });

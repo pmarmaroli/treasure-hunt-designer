@@ -62,7 +62,7 @@ const pdfTranslations = {
     summaryFile: 'recapitulatif',
     postersFile: 'affiches_enigmes',
     navigationSlipsFile: 'fiches_navigation',
-    writeAnswerThenOpenEnvelope: 'Écris ta réponse puis ouvre ton enveloppe pour les instructions',
+    writeAnswerThenOpenEnvelope: 'Écris ta réponse puis consulte ta fiche de navigation',
     cutAlongDottedLine: 'Découpez le long des pointillés',
     placeAtLocation: 'À déposer au lieu :',
   },
@@ -97,7 +97,7 @@ const pdfTranslations = {
     summaryFile: 'summary',
     postersFile: 'riddle_posters',
     navigationSlipsFile: 'navigation_slips',
-    writeAnswerThenOpenEnvelope: 'Write your answer down, then open your envelope for instructions',
+    writeAnswerThenOpenEnvelope: 'Write your answer down, then check your navigation sheet',
     cutAlongDottedLine: 'Cut along dotted line',
     placeAtLocation: 'Place at location:',
   },
@@ -132,7 +132,7 @@ const pdfTranslations = {
     summaryFile: 'resumen',
     postersFile: 'carteles_acertijos',
     navigationSlipsFile: 'fichas_navegacion',
-    writeAnswerThenOpenEnvelope: 'Escribe tu respuesta y abre tu sobre para las instrucciones',
+    writeAnswerThenOpenEnvelope: 'Escribe tu respuesta y consulta tu hoja de navegación',
     cutAlongDottedLine: 'Corte por la línea de puntos',
     placeAtLocation: 'Colocar en la ubicación:',
   }
@@ -142,60 +142,11 @@ const pdfTranslations = {
  * Fonction principale pour générer tous les PDFs nécessaires
  */
 export const generateTreasureHuntPDFs = (treasureHunt: TreasureHunt, language: Language = 'fr') => {
-  generateStartInstructionsPDF(treasureHunt, language);
   generateRiddlePostersPDF(treasureHunt, language);
-  generateNavigationSlipsPDF(treasureHunt, language);
+  generateNavigationSheetsPDF(treasureHunt, language);
   generateSummaryPDF(treasureHunt, language);
 };
 
-/**
- * Génère un PDF avec les instructions de départ pour chaque participant
- */
-const generateStartInstructionsPDF = (treasureHunt: TreasureHunt, language: Language) => {
-  const doc = new jsPDF();
-  const title = treasureHunt.title;
-  const texts = pdfTranslations[language];
-  
-  doc.setFontSize(20);
-  doc.text(title, 105, 20, { align: 'center' });
-  doc.setFontSize(16);
-  doc.text(texts.startInstructions, 105, 30, { align: 'center' });
-  
-  let y = 50;
-  
-  treasureHunt.participants.forEach((participant, index) => {
-    if (index > 0 && y > 240) {
-      doc.addPage();
-      y = 20;
-    }
-    
-    const firstLocationIndex = participant.circuit[0];
-    const firstLocationClue = treasureHunt.locations[firstLocationIndex].clue;
-    
-    doc.setFontSize(14);
-    doc.text(`${texts.for} ${participant.name}`, 20, y);
-    y += 10;
-    
-    doc.setFontSize(12);
-    doc.text(`${texts.hello} ${participant.name}!`, 20, y);
-    y += 10;
-    
-    const text = `${texts.findSecretCode}
-
-${texts.clueToFindLocation} ${firstLocationClue}`;
-    
-    const splitText = doc.splitTextToSize(text, 170);
-    doc.text(splitText, 20, y);
-    y += splitText.length * 7 + 15;
-    
-    if (index < treasureHunt.participants.length - 1) {
-      doc.line(20, y - 5, 190, y - 5);
-    }
-  });
-  
-  // Sauvegarde du PDF d'instructions de départ
-  doc.save(`${title.replace(/\s+/g, '_')}_${texts.startInstructionsFile}.pdf`);
-};
 
 /**
  * Génère un PDF avec une affiche par lieu (énigme partagée)
@@ -259,192 +210,131 @@ const generateRiddlePostersPDF = (treasureHunt: TreasureHunt, language: Language
 };
 
 /**
- * Génère un PDF avec les fiches de navigation (4 par page, groupées par lieu)
+ * Génère un PDF avec une fiche par participant (instructions de départ + navigation complète)
  */
-const generateNavigationSlipsPDF = (treasureHunt: TreasureHunt, language: Language) => {
+const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Language) => {
   const doc = new jsPDF();
   const title = treasureHunt.title;
   const texts = pdfTranslations[language];
 
-  // Page dimensions for A4
-  const pageW = 210;
-  const pageH = 297;
-  const margin = 10;
-  const slipW = (pageW - 2 * margin) / 2;
-  const slipH = (pageH - 2 * margin) / 2;
-  const halfSlipH = (pageH - 2 * margin) / 2;
+  treasureHunt.participants.forEach((participant, participantIndex) => {
+    if (participantIndex > 0) {
+      doc.addPage();
+    }
 
-  let pageStarted = false;
+    // Header: title + participant name
+    doc.setFontSize(16);
+    doc.text(title, 105, 15, { align: 'center' });
 
-  // Helper: draw a dotted rectangle
-  const drawDottedRect = (x: number, y: number, w: number, h: number) => {
-    doc.setDrawColor(180, 180, 180);
-    doc.setLineDashPattern([2, 2], 0);
-    doc.rect(x, y, w, h);
-    doc.setLineDashPattern([], 0);
-    doc.setDrawColor(0, 0, 0);
-  };
-
-  // Helper: render a normal slip (quarter page)
-  const renderNormalSlip = (
-    x: number, y: number,
-    participant: Participant,
-    locationIndex: number,
-    circuitIndex: number,
-    location: Location
-  ) => {
-    const padding = 4;
-    const innerW = slipW - 2 * padding;
-    const contentX = x + padding;
-    let contentY = y + padding + 5;
-
-    drawDottedRect(x, y, slipW, slipH);
-
-    // Participant name (bold)
+    doc.setFillColor(16, 122, 90);
+    doc.rect(20, 22, 170, 10, 'F');
+    doc.setTextColor(255, 255, 255);
     doc.setFontSize(13);
-    doc.setFont('helvetica', 'bold');
-    doc.text(participant.name, contentX, contentY);
-    contentY += 8;
-    doc.setFont('helvetica', 'normal');
-
-    // Instruction for this riddle's answer
-    const riddle = treasureHunt.riddles[locationIndex];
-    doc.setFontSize(10);
-    const instructionText = doc.splitTextToSize(
-      `${texts.withAnswer} ${circuitIndex + 1}: ${riddle.instruction}`,
-      innerW
-    );
-    doc.text(instructionText, contentX, contentY);
-    contentY += instructionText.length * 5 + 4;
-
-    // Next location clue
-    const nextLocationIndex = participant.circuit[circuitIndex + 1];
-    const nextLocationClue = treasureHunt.locations[nextLocationIndex].clue;
-
-    doc.setFontSize(10);
-    doc.text(texts.toFindNextLocation, contentX, contentY);
-    contentY += 6;
-
-    doc.setFontSize(9);
-    const clueText = doc.splitTextToSize(nextLocationClue, innerW);
-    doc.text(clueText, contentX, contentY);
-
-    // Footer: location placement
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.text(`${texts.placeAtLocation} ${location.name}`, x + slipW / 2, y + slipH - 3, { align: 'center' });
+    doc.text(participant.name, 105, 29, { align: 'center' });
     doc.setTextColor(0, 0, 0);
-  };
 
-  // Helper: render a last-stop slip (half page)
-  const renderLastStopSlip = (
-    x: number, y: number,
-    participant: Participant,
-    locationIndex: number,
-    circuitIndex: number,
-    location: Location
-  ) => {
-    const fullW = pageW - 2 * margin;
-    const padding = 5;
-    const innerW = fullW - 2 * padding;
-    const contentX = x + padding;
-    let contentY = y + padding + 5;
+    // Start instructions: greeting + first location clue
+    let y = 40;
+    const firstLocationIndex = participant.circuit[0];
+    const firstLocationClue = treasureHunt.locations[firstLocationIndex].clue;
 
-    drawDottedRect(x, y, fullW, halfSlipH);
-
-    // Participant name (bold)
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'bold');
-    doc.text(participant.name, contentX, contentY);
-    contentY += 8;
-    doc.setFont('helvetica', 'normal');
-
-    // Current riddle instruction
-    const riddle = treasureHunt.riddles[locationIndex];
-    doc.setFontSize(10);
-    const currentInstr = doc.splitTextToSize(
-      `${texts.withAnswer} ${circuitIndex + 1}: ${riddle.instruction}`,
-      innerW
-    );
-    doc.text(currentInstr, contentX, contentY);
-    contentY += currentInstr.length * 5 + 6;
-
-    // Final code assembly instructions
     doc.setFontSize(11);
-    doc.text(texts.toFindSecretCode, contentX, contentY);
-    contentY += 7;
+    doc.text(`${texts.hello} ${participant.name}!`, 25, y);
+    y += 7;
 
     doc.setFontSize(10);
-    participant.circuit.forEach((locIdx, idx) => {
-      const instr = treasureHunt.riddles[locIdx].instruction;
-      const line = doc.splitTextToSize(`${texts.withAnswer} ${idx + 1}: ${instr}`, innerW - 5);
-      doc.text(line, contentX + 5, contentY);
-      contentY += line.length * 5 + 2;
-    });
+    const startText = doc.splitTextToSize(
+      `${texts.findSecretCode}\n${texts.clueToFindLocation} ${firstLocationClue}`,
+      160
+    );
+    doc.text(startText, 25, y);
+    y += startText.length * 5 + 5;
 
-    // Footer: location placement
-    doc.setFontSize(7);
-    doc.setTextColor(150, 150, 150);
-    doc.text(`${texts.placeAtLocation} ${location.name}`, x + fullW / 2, y + halfSlipH - 3, { align: 'center' });
-    doc.setTextColor(0, 0, 0);
-  };
+    doc.setDrawColor(16, 122, 90);
+    doc.setLineWidth(0.5);
+    doc.line(20, y, 190, y);
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.2);
+    y += 6;
 
-  // Iterate by location
-  treasureHunt.locations.forEach((location, locationIndex) => {
-    // Classify participants at this location as normal vs last-stop
-    const normalSlips: { participant: Participant; circuitIndex: number }[] = [];
-    const lastStopSlips: { participant: Participant; circuitIndex: number }[] = [];
+    // Each stop in the participant's circuit
+    participant.circuit.forEach((locationIndex, circuitIndex) => {
+      const location = treasureHunt.locations[locationIndex];
+      const riddle = treasureHunt.riddles[locationIndex];
+      const isLastStop = circuitIndex === participant.circuit.length - 1;
 
-    treasureHunt.participants.forEach(participant => {
-      const circuitIndex = participant.circuit.indexOf(locationIndex);
-      if (circuitIndex === -1) return;
+      // Check if we need a new page
+      if (y > 250) {
+        doc.addPage();
+        doc.setFontSize(12);
+        doc.text(`${participant.name} (${texts.page} ${circuitIndex + 1})`, 105, 15, { align: 'center' });
+        y = 25;
+      }
 
-      if (circuitIndex === participant.circuit.length - 1) {
-        lastStopSlips.push({ participant, circuitIndex });
+      // Stop number (no location name — participant must discover it from clues)
+      doc.setFillColor(240, 240, 240);
+      doc.rect(20, y - 4, 170, 8, 'F');
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${texts.riddle} ${circuitIndex + 1}`, 25, y + 1);
+      doc.setFont('helvetica', 'normal');
+      y += 10;
+
+      // Instruction for this riddle's answer
+      doc.setFontSize(10);
+      const instructionText = doc.splitTextToSize(
+        `${texts.withAnswer} ${circuitIndex + 1}: ${riddle.instruction}`,
+        160
+      );
+      doc.text(instructionText, 25, y);
+      y += instructionText.length * 5 + 3;
+
+      if (isLastStop) {
+        // Final code assembly instructions
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(texts.toFindSecretCode, 25, y);
+        doc.setFont('helvetica', 'normal');
+        y += 7;
+
+        participant.circuit.forEach((locIdx, idx) => {
+          const instr = treasureHunt.riddles[locIdx].instruction;
+          const line = doc.splitTextToSize(`${texts.withAnswer} ${idx + 1}: ${instr}`, 155);
+          doc.text(line, 30, y);
+          y += line.length * 5 + 2;
+        });
       } else {
-        normalSlips.push({ participant, circuitIndex });
+        // Next location clue
+        const nextLocationIndex = participant.circuit[circuitIndex + 1];
+        const nextLocationClue = treasureHunt.locations[nextLocationIndex].clue;
+
+        doc.setFontSize(10);
+        doc.text(texts.toFindNextLocation, 25, y);
+        y += 6;
+
+        doc.setFontSize(9);
+        const clueText = doc.splitTextToSize(nextLocationClue, 155);
+        doc.text(clueText, 30, y);
+        y += clueText.length * 5 + 3;
+      }
+
+      // Separator line between stops
+      if (!isLastStop) {
+        doc.setDrawColor(200, 200, 200);
+        doc.line(30, y, 180, y);
+        doc.setDrawColor(0, 0, 0);
+        y += 6;
       }
     });
 
-    // Render normal slips (4 per page: 2 cols x 2 rows)
-    for (let i = 0; i < normalSlips.length; i++) {
-      const posOnPage = i % 4;
-      if (posOnPage === 0) {
-        if (pageStarted) doc.addPage();
-        pageStarted = true;
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
-        doc.text(texts.cutAlongDottedLine, 105, 7, { align: 'center' });
-        doc.setTextColor(0, 0, 0);
-      }
-
-      const col = posOnPage % 2;
-      const row = Math.floor(posOnPage / 2);
-      const x = margin + col * slipW;
-      const y = margin + row * slipH;
-
-      const { participant, circuitIndex } = normalSlips[i];
-      renderNormalSlip(x, y, participant, locationIndex, circuitIndex, location);
-    }
-
-    // Render last-stop slips (2 per page: full width, half height)
-    for (let i = 0; i < lastStopSlips.length; i++) {
-      const posOnPage = i % 2;
-      if (posOnPage === 0) {
-        if (pageStarted) doc.addPage();
-        pageStarted = true;
-        doc.setFontSize(8);
-        doc.setTextColor(150, 150, 150);
-        doc.text(texts.cutAlongDottedLine, 105, 7, { align: 'center' });
-        doc.setTextColor(0, 0, 0);
-      }
-
-      const x = margin;
-      const y = margin + posOnPage * halfSlipH;
-
-      const { participant, circuitIndex } = lastStopSlips[i];
-      renderLastStopSlip(x, y, participant, locationIndex, circuitIndex, location);
-    }
+    // Organizer-only footer: location order (discreet, light gray)
+    const locationOrder = participant.circuit
+      .map((locIdx, idx) => `${idx + 1}: ${treasureHunt.locations[locIdx].name}`)
+      .join('  |  ');
+    doc.setFontSize(7);
+    doc.setTextColor(180, 180, 180);
+    doc.text(locationOrder, 105, 290, { align: 'center' });
+    doc.setTextColor(0, 0, 0);
   });
 
   doc.save(`${title.replace(/\s+/g, '_')}_${texts.navigationSlipsFile}.pdf`);

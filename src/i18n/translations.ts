@@ -87,6 +87,7 @@ export type TranslationKey =
   | 'yourAnswerHere'
   | 'validateAnswer' 
   | 'solvedAllRiddles'
+  | 'withAnswerToRiddle'
 
   // Import
   | 'importTitle'
@@ -213,6 +214,7 @@ export const translations: TranslationsType = {
     yourAnswerHere: 'Ta réponse ici',
     validateAnswer: 'Valider ma réponse',
     solvedAllRiddles: 'Tu as résolu toutes les énigmes!',
+    withAnswerToRiddle: 'Avec ta réponse à l\'énigme',
 
     // Import
     importTitle: 'Importer une chasse au trésor',
@@ -333,6 +335,7 @@ Our system automates the correspondence between participants, their paths, and t
     yourAnswerHere: 'Your answer here',
     validateAnswer: 'Validate my answer',
     solvedAllRiddles: 'You solved all the riddles!',
+    withAnswerToRiddle: 'With your answer to riddle',
 
     // Import
     importTitle: 'Import a treasure hunt',
@@ -453,6 +456,7 @@ Our system automates the correspondence between participants, their paths, and t
     yourAnswerHere: 'Tu respuesta aquí',
     validateAnswer: 'Validar mi respuesta',
     solvedAllRiddles: '¡Has resuelto todos los acertijos!',
+    withAnswerToRiddle: 'Con tu respuesta al acertijo',
     
     // Import
     importTitle: 'Importar una búsqueda del tesoro',

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Gift, Plus, PlayCircle, ArrowLeft, ArrowRight, Download, Home, FileCheck, Play, Upload } from 'lucide-react';
+import { Gift, Plus, PlayCircle, ArrowLeft, ArrowRight, Download, Home, FileCheck, Play, Upload, FlaskConical } from 'lucide-react';
 import TreasureHuntPreview from './TreasureHuntPreview';
 import TreasureHuntGame from './TreasureHuntGame';
 import TreasureHuntImporter from './TreasureHuntImporter';
@@ -96,6 +96,36 @@ function App() {
       riddles: [],
     });
     setHuntCreated(false);
+  };
+
+  const loadMockData = () => {
+    const mockHunt: TreasureHunt = {
+      title: 'Chasse au Trésor d\'Anniversaire',
+      participants: [
+        { name: 'Alice', secret: 'Ton cadeau est caché sous l\'escalier !', circuit: [2, 0, 3, 1], code: '7153' },
+        { name: 'Bob', secret: 'Regarde derrière le grand tableau dans le couloir !', circuit: [1, 3, 0, 2], code: '5315' },
+        { name: 'Charlie', secret: 'Cherche dans la boîte bleue du garage !', circuit: [3, 1, 2, 0], code: '1573' },
+      ],
+      locations: [
+        { name: 'Cuisine', clue: 'L\'endroit où l\'on prépare les repas et où ça sent bon les gâteaux' },
+        { name: 'Jardin', clue: 'L\'espace vert où les fleurs poussent et les oiseaux chantent' },
+        { name: 'Bibliothèque', clue: 'Une pièce calme remplie d\'histoires et de connaissances' },
+        { name: 'Grenier', clue: 'La pièce la plus haute, où les vieux souvenirs sont gardés' },
+      ],
+      riddles: [
+        { text: 'J\'ai des aiguilles mais je ne pique pas. Qui suis-je ?', answer: 'Une horloge', instruction: 'Compte les voyelles dans ta réponse', digit: '1' },
+        { text: 'J\'ai des villes mais pas de maisons, des forêts mais pas d\'arbres, de l\'eau mais pas de poissons. Qui suis-je ?', answer: 'Une carte', instruction: 'Prends le nombre de lettres de ta réponse', digit: '5' },
+        { text: 'J\'ai des touches mais pas de serrures, de l\'espace mais pas de pièce. Qui suis-je ?', answer: 'Un clavier', instruction: 'Prends le premier chiffre du nombre de lettres', digit: '1' },
+        { text: 'Je parle sans bouche et j\'entends sans oreilles. Je n\'ai pas de corps mais je vis avec le vent. Qui suis-je ?', answer: 'Un écho', instruction: 'Compte les lettres et soustrais 2', digit: '3' },
+      ],
+    };
+    setTreasureHunt(mockHunt);
+    setHuntCreated(true);
+    setAppMode('create');
+    setCreateStep(5);
+    setTestMode(false);
+    setParticipantCount(mockHunt.participants.length);
+    setRiddleCount(mockHunt.riddles.length);
   };
 
   const handleImportMode = () => {
@@ -866,6 +896,14 @@ function App() {
                 <span className="text-sm mt-2 text-emerald-700 font-normal">{t('importFile')}</span>
               </button>
             </div>
+
+            <button
+              onClick={loadMockData}
+              className="mt-4 text-amber-300 hover:text-amber-100 transition-colors flex items-center justify-center gap-2 text-sm opacity-70 hover:opacity-100"
+            >
+              <FlaskConical className="w-4 h-4" />
+              Load demo data
+            </button>
           </div>
         ) : appMode === 'import' ? (
 

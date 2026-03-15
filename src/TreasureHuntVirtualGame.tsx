@@ -336,7 +336,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                                     <div key={idx} className="p-2 bg-amber-50 rounded border border-amber-100">
                                         <p className="text-emerald-700">
                                             <span className="font-bold">{idx + 1}. </span>
-                                            {treasureHunt.riddles[locIdx].instruction}
+                                            {t('withAnswerToRiddle')} {idx + 1}: {treasureHunt.riddles[locIdx].instruction}
                                         </p>
                                     </div>
                                 ))}

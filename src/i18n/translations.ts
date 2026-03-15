@@ -57,8 +57,6 @@ export type TranslationKey =
   
   // Final step buttons
   | 'downloadJSON'
-  | 'startInstructions'
-  | 'riddleSheets'
   | 'generateAllPDFs'
   | 'testMode'
   | 'virtualTest'
@@ -185,8 +183,6 @@ export const translations: TranslationsType = {
     
     // Final step buttons
     downloadJSON: 'Télécharger JSON',
-    startInstructions: 'Instructions de départ',
-    riddleSheets: 'Feuilles d\'énigmes',
     generateAllPDFs: 'Générer tous les PDFs',
     testMode: 'Le Coffre',
     virtualTest: 'Test Virtuel',
@@ -307,8 +303,6 @@ Our system automates the correspondence between participants, their paths, and t
     
     // Final step buttons
     downloadJSON: 'Download JSON',
-    startInstructions: 'Starting Instructions',
-    riddleSheets: 'Riddle Sheets',
     generateAllPDFs: 'Generate All PDFs',
     testMode: 'The Chest',
     virtualTest: 'Virtual Test',
@@ -429,8 +423,6 @@ Our system automates the correspondence between participants, their paths, and t
     
     // Final step buttons
     downloadJSON: 'Descargar JSON',
-    startInstructions: 'Instrucciones iniciales',
-    riddleSheets: 'Hojas de acertijos',
     generateAllPDFs: 'Generar todos los PDFs',
     testMode: 'El Cofre',
     virtualTest: 'Prueba Virtual',

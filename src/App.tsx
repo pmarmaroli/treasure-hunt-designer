@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Gift, Plus, PlayCircle, ArrowLeft, ArrowRight, Printer, Download, Home, FileCheck, Play, Upload } from 'lucide-react';
+import { Gift, Plus, PlayCircle, ArrowLeft, ArrowRight, Download, Home, FileCheck, Play, Upload } from 'lucide-react';
 import TreasureHuntPreview from './TreasureHuntPreview';
 import TreasureHuntGame from './TreasureHuntGame';
 import TreasureHuntImporter from './TreasureHuntImporter';
@@ -297,65 +297,6 @@ function App() {
     const a = document.createElement('a');
     a.href = url;
     a.download = `${treasureHunt.title.replace(/\s+/g, '_')}_treasure_hunt.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const generateStartInstructions = () => {
-    let content = '';
-
-    treasureHunt.participants.forEach(participant => {
-      const firstLocationIndex = participant.circuit[0];
-      const firstLocationClue = treasureHunt.locations[firstLocationIndex].clue;
-
-      content += `INSTRUCTIONS DE DÉPART POUR: ${participant.name}\n\n`;
-      content += `Bonjour ${participant.name} !\n\n`;
-      content += `Ton aventure commence dans un endroit spécial.\n`;
-      content += `Voici l'indice pour trouver cet endroit: ${firstLocationClue}\n\n`;
-      content += `----------------------------------------------------------\n\n`;
-    });
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${treasureHunt.title.replace(/\s+/g, '_')}_instructions.txt`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const generateRiddleSheets = () => {
-    let content = '';
-
-    treasureHunt.participants.forEach(participant => {
-      participant.circuit.forEach((locationIndex, circuitIndex) => {
-        const riddle = treasureHunt.riddles[locationIndex];
-        const isLastLocation = circuitIndex === participant.circuit.length - 1;
-
-        content += `FEUILLE D'ÉNIGME POUR: ${participant.name} (Énigme ${circuitIndex + 1}/${participant.circuit.length})\n\n`;
-        content += `Cher(e) ${participant.name},\n\n`;
-        content += `Voici ton énigme numéro ${circuitIndex + 1}:\n\n`;
-        content += `${riddle.text}\n\n`;
-        content += `Écris ta réponse au dos de cette feuille puis `;
-
-        if (isLastLocation) {
-          const allInstructions = participant.circuit.map(idx => treasureHunt.riddles[idx].instruction).join('\n- ');
-          content += `pour trouver ton code secret, suis maintenant ces instructions:\n\n- ${allInstructions}\n\n`;
-        } else {
-          const nextLocationIndex = participant.circuit[circuitIndex + 1];
-          const nextLocationClue = treasureHunt.locations[nextLocationIndex].clue;
-          content += `rends-toi à ton prochain lieu. Pour le trouver, suis cet indice:\n\n${nextLocationClue}\n\n`;
-        }
-
-        content += `----------------------------------------------------------\n\n`;
-      });
-    });
-
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${treasureHunt.title.replace(/\s+/g, '_')}_riddle_sheets.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -789,7 +730,7 @@ function App() {
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <button
                 onClick={generateJsonFile}
                 className="bg-emerald-700 text-amber-100 py-3 px-4 rounded-lg hover:bg-emerald-800 transition-colors flex items-center justify-center"
@@ -799,26 +740,8 @@ function App() {
               </button>
 
               <button
-                onClick={generateStartInstructions}
-                className="bg-emerald-700 text-amber-100 py-3 px-4 rounded-lg hover:bg-emerald-800 transition-colors flex items-center justify-center"
-              >
-                <Printer className="mr-2 w-5 h-5" />
-                {t('startInstructions')}
-              </button>
-
-              <button
-                onClick={generateRiddleSheets}
-                className="bg-emerald-700 text-amber-100 py-3 px-4 rounded-lg hover:bg-emerald-800 transition-colors flex items-center justify-center"
-              >
-                <Printer className="mr-2 w-5 h-5" />
-                {t('riddleSheets')}
-              </button>
-            </div>
-
-            <div className="mt-4">
-              <button
                 onClick={handleGeneratePDFs}
-                className="w-full bg-emerald-700 text-amber-100 py-3 px-4 rounded-lg hover:bg-emerald-800 transition-colors flex items-center justify-center"
+                className="bg-emerald-700 text-amber-100 py-3 px-4 rounded-lg hover:bg-emerald-800 transition-colors flex items-center justify-center"
               >
                 <FileCheck className="mr-2 w-5 h-5" />
                 {t('generateAllPDFs')}

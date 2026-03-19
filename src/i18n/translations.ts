@@ -110,7 +110,24 @@ export type TranslationKey =
   // PDF generation translations
   | 'hello'
   | 'findSecretCode'
-  | 'clueToFindLocation';
+  | 'clueToFindLocation'
+  
+  // Auto-save
+  | 'resumeSession'
+  | 'discardSession'
+  | 'resumeSessionMessage'
+  | 'draftAutoSaved'
+  
+  // Location clarity
+  | 'locationConceptExplanation'
+  | 'showLocationName'
+  | 'useClueInstead'
+  | 'locationDirectName'
+  
+  // Creator vs participant visibility
+  | 'visibleToParticipants'
+  | 'creatorOnly'
+  | 'visibilityLegend';
 
 type TranslationsType = {
   [key in 'fr' | 'en' | 'es']: {
@@ -237,7 +254,24 @@ export const translations: TranslationsType = {
     // PDF generation translations
     hello: 'Bonjour',
     findSecretCode: 'Pour trouver ton code secret, tu dois te rendre à un certain endroit.',
-    clueToFindLocation: 'Voici l\'indice pour trouver cet endroit:'
+    clueToFindLocation: 'Voici l\'indice pour trouver cet endroit:',
+    
+    // Auto-save
+    resumeSession: 'Reprendre',
+    discardSession: 'Recommencer à zéro',
+    resumeSessionMessage: 'Vous avez une chasse au trésor en cours de création. Voulez-vous reprendre là où vous en étiez ?',
+    draftAutoSaved: 'Brouillon sauvegardé automatiquement',
+    
+    // Location clarity
+    locationConceptExplanation: 'Chaque lieu accueille une énigme. Les participants visiteront les lieux dans un ordre aléatoire différent. Pour chaque lieu, vous pouvez choisir d\'afficher le vrai nom ou de le remplacer par un indice que le participant devra déchiffrer.',
+    showLocationName: 'Les participants verront le nom du lieu directement',
+    useClueInstead: 'Les participants devront deviner le lieu grâce à un indice',
+    locationDirectName: 'Nom affiché directement',
+    
+    // Creator vs participant visibility
+    visibleToParticipants: 'Visible par les participants',
+    creatorOnly: 'Visible uniquement par vous (organisateur)',
+    visibilityLegend: 'Légende des couleurs'
   },
   
   en: {
@@ -358,7 +392,24 @@ Our system automates the correspondence between participants, their paths, and t
     // PDF generation translations
     hello: 'Hello',
     findSecretCode: 'To find your secret code, you need to go to a specific location.',
-    clueToFindLocation: 'Here is the clue to find this location:'
+    clueToFindLocation: 'Here is the clue to find this location:',
+    
+    // Auto-save
+    resumeSession: 'Resume',
+    discardSession: 'Start fresh',
+    resumeSessionMessage: 'You have a treasure hunt in progress. Would you like to resume where you left off?',
+    draftAutoSaved: 'Draft auto-saved',
+    
+    // Location clarity
+    locationConceptExplanation: 'Each location hosts one riddle. Participants will visit locations in a different random order. For each location, you can choose to show the real name or replace it with a clue the participant must decipher.',
+    showLocationName: 'Participants will see the location name directly',
+    useClueInstead: 'Participants must guess the location from a clue',
+    locationDirectName: 'Name shown directly',
+    
+    // Creator vs participant visibility
+    visibleToParticipants: 'Visible to participants',
+    creatorOnly: 'Only visible to you (organizer)',
+    visibilityLegend: 'Color legend'
   },
   
   es: {
@@ -479,6 +530,23 @@ Our system automates the correspondence between participants, their paths, and t
     // PDF generation translations
     hello: 'Hola',
     findSecretCode: 'Para encontrar tu código secreto, debes ir a un lugar específico.',
-    clueToFindLocation: 'Aquí está la pista para encontrar este lugar:'
+    clueToFindLocation: 'Aquí está la pista para encontrar este lugar:',
+    
+    // Auto-save
+    resumeSession: 'Reanudar',
+    discardSession: 'Empezar de nuevo',
+    resumeSessionMessage: 'Tienes una búsqueda del tesoro en progreso. ¿Quieres continuar donde lo dejaste?',
+    draftAutoSaved: 'Borrador guardado automáticamente',
+    
+    // Location clarity
+    locationConceptExplanation: 'Cada ubicación alberga un acertijo. Los participantes visitarán las ubicaciones en un orden aleatorio diferente. Para cada ubicación, puedes elegir mostrar el nombre real o reemplazarlo por una pista que el participante deberá descifrar.',
+    showLocationName: 'Los participantes verán el nombre de la ubicación directamente',
+    useClueInstead: 'Los participantes deben adivinar la ubicación a partir de una pista',
+    locationDirectName: 'Nombre mostrado directamente',
+    
+    // Creator vs participant visibility
+    visibleToParticipants: 'Visible para los participantes',
+    creatorOnly: 'Solo visible para ti (organizador)',
+    visibilityLegend: 'Leyenda de colores'
   }
 };

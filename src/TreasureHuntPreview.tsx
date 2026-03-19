@@ -1,5 +1,6 @@
 import React from 'react';
-import { Gift, MapPin, User, FileText } from 'lucide-react';
+import { Gift, MapPin, User, FileText, Eye, EyeOff } from 'lucide-react';
+import { useLanguage } from './contexts/LanguageContext';
 
 type Participant = {
     name: string;
@@ -11,6 +12,7 @@ type Participant = {
 type Location = {
     name: string;
     clue: string;
+    useClue: boolean;
 };
 
 type Riddle = {
@@ -33,6 +35,7 @@ const TreasureHuntPreview: React.FC<TreasureHuntProps> = ({
     locations,
     riddles,
 }) => {
+    const { t } = useLanguage();
     const [activeTab, setActiveTab] = React.useState<'participants' | 'locations' | 'riddles'>('participants');
 
     return (
@@ -53,7 +56,7 @@ const TreasureHuntPreview: React.FC<TreasureHuntProps> = ({
                         }`}
                 >
                     <User className="mr-2 w-4 h-4" />
-                    Participants
+                    {t('participants')}
                 </button>
                 <button
                     onClick={() => setActiveTab('locations')}
@@ -63,7 +66,7 @@ const TreasureHuntPreview: React.FC<TreasureHuntProps> = ({
                         }`}
                 >
                     <MapPin className="mr-2 w-4 h-4" />
-                    Lieux
+                    {t('locations')}
                 </button>
                 <button
                     onClick={() => setActiveTab('riddles')}
@@ -73,14 +76,14 @@ const TreasureHuntPreview: React.FC<TreasureHuntProps> = ({
                         }`}
                 >
                     <FileText className="mr-2 w-4 h-4" />
-                    Énigmes
+                    {t('riddles')}
                 </button>
             </div>
 
             <div className="p-4">
                 {activeTab === 'participants' && (
                     <div>
-                        <h3 className="text-lg font-bold text-emerald-800 mb-4">Participants ({participants.length})</h3>
+                        <h3 className="text-lg font-bold text-emerald-800 mb-4">{t('participants')} ({participants.length})</h3>
                         <div className="space-y-4">
                             {participants.map((participant, index) => (
                                 <div key={index} className="border border-amber-200 rounded-lg p-4 bg-white">
@@ -112,15 +115,28 @@ const TreasureHuntPreview: React.FC<TreasureHuntProps> = ({
 
                 {activeTab === 'locations' && (
                     <div>
-                        <h3 className="text-lg font-bold text-emerald-800 mb-4">Lieux ({locations.length})</h3>
+                        <h3 className="text-lg font-bold text-emerald-800 mb-4">{t('locations')} ({locations.length})</h3>
                         <div className="space-y-4">
                             {locations.map((location, index) => (
                                 <div key={index} className="border border-amber-200 rounded-lg p-4 bg-white">
-                                    <h4 className="font-bold text-emerald-700 mb-2">{location.name}</h4>
-                                    <div>
-                                        <h5 className="text-sm font-semibold text-emerald-700 mb-1">Indice:</h5>
-                                        <p className="text-gray-700">{location.clue}</p>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h4 className="font-bold text-emerald-700">{location.name}</h4>
+                                        {location.useClue ? (
+                                            <span className="flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded">
+                                                <Eye className="w-3 h-3" /> {t('useClueInstead')}
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">
+                                                <Eye className="w-3 h-3" /> {t('locationDirectName')}
+                                            </span>
+                                        )}
                                     </div>
+                                    {location.useClue && (
+                                        <div>
+                                            <h5 className="text-sm font-semibold text-emerald-700 mb-1">{t('clue')}</h5>
+                                            <p className="text-gray-700">{location.clue}</p>
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -129,27 +145,34 @@ const TreasureHuntPreview: React.FC<TreasureHuntProps> = ({
 
                 {activeTab === 'riddles' && (
                     <div>
-                        <h3 className="text-lg font-bold text-emerald-800 mb-4">Énigmes ({riddles.length})</h3>
+                        <h3 className="text-lg font-bold text-emerald-800 mb-4">{t('riddles')} ({riddles.length})</h3>
+                        {/* Visibility legend */}
+                        <div className="flex items-center gap-4 text-xs p-2 mb-3 bg-white rounded-lg border border-gray-200">
+                            <span className="flex items-center gap-1"><Eye className="w-3 h-3 text-emerald-600" /><span className="inline-block w-2 h-2 rounded bg-emerald-50 border border-emerald-300"></span> {t('visibleToParticipants')}</span>
+                            <span className="flex items-center gap-1"><EyeOff className="w-3 h-3 text-gray-400" /><span className="inline-block w-2 h-2 rounded bg-gray-100 border border-gray-300 border-dashed"></span> {t('creatorOnly')}</span>
+                        </div>
                         <div className="space-y-4">
                             {riddles.map((riddle, index) => (
                                 <div key={index} className="border border-amber-200 rounded-lg p-4 bg-white">
-                                    <h4 className="font-bold text-emerald-700 mb-2">Énigme {index + 1}</h4>
-                                    <div className="mb-3">
-                                        <h5 className="text-sm font-semibold text-emerald-700 mb-1">Question:</h5>
+                                    <h4 className="font-bold text-emerald-700 mb-2">{t('riddles')} {index + 1}</h4>
+                                    <div className="mb-3 border-l-4 border-l-emerald-500 bg-emerald-50 rounded-r-lg p-3">
+                                        <h5 className="text-sm font-semibold text-emerald-700 mb-1 flex items-center gap-1"><Eye className="w-3 h-3" /> {t('question')}</h5>
                                         <p className="text-gray-700">{riddle.text}</p>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                        <div>
-                                            <h5 className="text-sm font-semibold text-emerald-700 mb-1">Réponse:</h5>
+                                        <div className="border-l-4 border-l-gray-400 border-dashed bg-gray-50 rounded-r-lg p-3">
+                                            <h5 className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1"><EyeOff className="w-3 h-3" /> {t('answer')}</h5>
                                             <p className="text-gray-700">{riddle.answer}</p>
                                         </div>
                                         <div>
-                                            <h5 className="text-sm font-semibold text-emerald-700 mb-1">
-                                                Instruction → Chiffre:
-                                            </h5>
-                                            <p className="text-gray-700">
-                                                {riddle.instruction} → <span className="font-bold">{riddle.digit}</span>
-                                            </p>
+                                            <div className="border-l-4 border-l-emerald-500 bg-emerald-50 rounded-r-lg p-3 mb-2">
+                                                <h5 className="text-sm font-semibold text-emerald-700 mb-1 flex items-center gap-1"><Eye className="w-3 h-3" /> {t('instruction')}</h5>
+                                                <p className="text-gray-700">{riddle.instruction}</p>
+                                            </div>
+                                            <div className="border-l-4 border-l-gray-400 border-dashed bg-gray-50 rounded-r-lg p-3">
+                                                <h5 className="text-sm font-semibold text-gray-600 mb-1 flex items-center gap-1"><EyeOff className="w-3 h-3" /> {t('digit')}</h5>
+                                                <p className="text-gray-700 font-bold">{riddle.digit}</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

@@ -12,6 +12,7 @@ type Participant = {
 type Location = {
     name: string;
     clue: string;
+    useClue: boolean;
 };
 
 type Riddle = {
@@ -88,6 +89,12 @@ const TreasureHuntImporter: React.FC<ImporterProps> = ({ onImport, onCancel }) =
                     setError(t('invalidFileFormat'));
                     return;
                 }
+
+                // Backward compatibility: default useClue to true if missing
+                treasureHunt.locations = treasureHunt.locations.map(loc => ({
+                    ...loc,
+                    useClue: loc.useClue !== undefined ? loc.useClue : true,
+                }));
 
                 setSuccess(true);
 

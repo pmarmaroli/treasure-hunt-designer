@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Gift, Plus, PlayCircle, ArrowLeft, ArrowRight, Download, Home, FileCheck, Play, Upload, FlaskConical } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Gift, Plus, PlayCircle, ArrowLeft, ArrowRight, Download, Home, FileCheck, Play, Upload, FlaskConical, Info, Eye, EyeOff } from 'lucide-react';
 import TreasureHuntPreview from './TreasureHuntPreview';
 import TreasureHuntGame from './TreasureHuntGame';
 import TreasureHuntImporter from './TreasureHuntImporter';
@@ -8,6 +8,7 @@ import generateTreasureHuntPDFs from './pdfGenerator';
 import { useLanguage } from './contexts/LanguageContext';
 import LanguageSelector from './components/LanguageSelector';
 import FormattedText from './components/FormattedText';
+import { useAutoSave, loadSavedDraft, clearSavedDraft } from './hooks/useAutoSave';
 
 type AppMode = 'selection' | 'create' | 'import';
 
@@ -25,6 +26,7 @@ type Child = {
 type Location = {
   name: string;
   clue: string;
+  useClue: boolean;
 };
 
 type Riddle = {
@@ -56,6 +58,9 @@ function App() {
   const [showMessage, setShowMessage] = useState(false);
   const [error, setError] = useState(false);
 
+  // Restore dialog state
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+
   // States for treasure hunt creation
   const [createStep, setCreateStep] = useState(1);
   const [treasureHunt, setTreasureHunt] = useState<TreasureHunt>({
@@ -67,7 +72,7 @@ function App() {
   const [participantCount, setParticipantCount] = useState(2);
   const [riddleCount, setRiddleCount] = useState(3);
   const [tempParticipant, setTempParticipant] = useState({ name: '', secret: '' });
-  const [tempLocation, setTempLocation] = useState({ name: '', clue: '' });
+  const [tempLocation, setTempLocation] = useState({ name: '', clue: '', useClue: true });
   const [tempRiddle, setTempRiddle] = useState({
     text: '',
     answer: '',
@@ -82,7 +87,61 @@ function App() {
   const [testMode, setTestMode] = useState(false);
   const [testModeType, setTestModeType] = useState<TestMode>('simple');
 
+  // Auto-save: persist creation state to localStorage
+  const draftData = useMemo(() => {
+    // Only auto-save when in creation mode and not yet finalized (step < 5)
+    if (appMode !== 'create' || createStep >= 5 || testMode) return null;
+    return {
+      treasureHunt,
+      participantCount,
+      riddleCount,
+      createStep,
+      currentParticipantIndex,
+      currentLocationIndex,
+      currentRiddleIndex,
+      tempParticipant,
+      tempLocation,
+      tempRiddle,
+    };
+  }, [appMode, createStep, testMode, treasureHunt, participantCount, riddleCount,
+    currentParticipantIndex, currentLocationIndex, currentRiddleIndex,
+    tempParticipant, tempLocation, tempRiddle]);
+
+  useAutoSave(draftData);
+
+  // Check for saved draft on mount
+  useEffect(() => {
+    const saved = loadSavedDraft();
+    if (saved) {
+      setShowRestoreDialog(true);
+    }
+  }, []);
+
+  const handleRestoreDraft = () => {
+    const saved = loadSavedDraft();
+    if (saved) {
+      setTreasureHunt(saved.treasureHunt);
+      setParticipantCount(saved.participantCount);
+      setRiddleCount(saved.riddleCount);
+      setCreateStep(saved.createStep);
+      setCurrentParticipantIndex(saved.currentParticipantIndex);
+      setCurrentLocationIndex(saved.currentLocationIndex);
+      setCurrentRiddleIndex(saved.currentRiddleIndex);
+      setTempParticipant(saved.tempParticipant);
+      setTempLocation(saved.tempLocation);
+      setTempRiddle(saved.tempRiddle);
+      setAppMode('create');
+    }
+    setShowRestoreDialog(false);
+  };
+
+  const handleDiscardDraft = () => {
+    clearSavedDraft();
+    setShowRestoreDialog(false);
+  };
+
   const handleCreateMode = () => {
+    clearSavedDraft();
     setAppMode('create');
     setSelectedChild(null);
     setCode('');
@@ -107,10 +166,10 @@ function App() {
         { name: 'Charlie', secret: 'Cherche dans la boîte bleue du garage !', circuit: [3, 1, 2, 0], code: '1573' },
       ],
       locations: [
-        { name: 'Cuisine', clue: 'L\'endroit où l\'on prépare les repas et où ça sent bon les gâteaux' },
-        { name: 'Jardin', clue: 'L\'espace vert où les fleurs poussent et les oiseaux chantent' },
-        { name: 'Bibliothèque', clue: 'Une pièce calme remplie d\'histoires et de connaissances' },
-        { name: 'Grenier', clue: 'La pièce la plus haute, où les vieux souvenirs sont gardés' },
+        { name: 'Cuisine', clue: 'L\'endroit où l\'on prépare les repas et où ça sent bon les gâteaux', useClue: true },
+        { name: 'Jardin', clue: 'L\'espace vert où les fleurs poussent et les oiseaux chantent', useClue: true },
+        { name: 'Bibliothèque', clue: 'Une pièce calme remplie d\'histoires et de connaissances', useClue: true },
+        { name: 'Grenier', clue: 'La pièce la plus haute, où les vieux souvenirs sont gardés', useClue: false },
       ],
       riddles: [
         { text: 'J\'ai des aiguilles mais je ne pique pas. Qui suis-je ?', answer: 'Une horloge', instruction: 'Compte les voyelles dans ta réponse', digit: '1' },
@@ -247,13 +306,13 @@ function App() {
   };
 
   const addLocation = () => {
-    if (tempLocation.name.trim() && tempLocation.clue.trim()) {
+    if (tempLocation.name.trim() && (tempLocation.clue.trim() || !tempLocation.useClue)) {
       setTreasureHunt(prev => ({
         ...prev,
         locations: [...prev.locations, tempLocation],
       }));
 
-      setTempLocation({ name: '', clue: '' });
+      setTempLocation({ name: '', clue: '', useClue: true });
 
       if (treasureHunt.locations.length + 1 === riddleCount) {
         nextStep();
@@ -329,11 +388,13 @@ function App() {
     a.download = `${treasureHunt.title.replace(/\s+/g, '_')}_treasure_hunt.json`;
     a.click();
     URL.revokeObjectURL(url);
+    clearSavedDraft();
   };
 
   // Generate PDF files using the imported function
   const handleGeneratePDFs = () => {
     generateTreasureHuntPDFs(treasureHunt, language);
+    clearSavedDraft();
   };
 
   // This is the fixed version of the renderCreateStep function in App.tsx
@@ -420,28 +481,37 @@ function App() {
               />
             </h2>
 
+            {/* Visibility legend */}
+            <div className="flex items-center gap-4 text-sm p-2 bg-white rounded-lg border border-gray-200">
+              <span className="font-medium text-gray-600">{t('visibilityLegend')}:</span>
+              <span className="flex items-center gap-1"><Eye className="w-3 h-3 text-emerald-600" /><span className="inline-block w-3 h-3 rounded bg-emerald-50 border border-emerald-300"></span> {t('visibleToParticipants')}</span>
+              <span className="flex items-center gap-1"><EyeOff className="w-3 h-3 text-gray-400" /><span className="inline-block w-3 h-3 rounded bg-gray-100 border border-gray-300 border-dashed"></span> {t('creatorOnly')}</span>
+            </div>
+
             <div className="space-y-4">
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">
+              <div className="border-l-4 border-l-emerald-500 bg-emerald-50 rounded-r-lg p-4">
+                <label className="block text-emerald-800 mb-2 font-medium flex items-center gap-1">
+                  <Eye className="w-4 h-4 text-emerald-600" />
                   {t('participantName')}
                 </label>
                 <input
                   type="text"
                   value={tempParticipant.name}
                   onChange={(e) => setTempParticipant({ ...tempParticipant, name: e.target.value })}
-                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-amber-50"
+                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-white"
                   placeholder="Ex: Jean"
                 />
               </div>
 
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">
+              <div className="border-l-4 border-l-emerald-500 bg-emerald-50 rounded-r-lg p-4">
+                <label className="block text-emerald-800 mb-2 font-medium flex items-center gap-1">
+                  <Eye className="w-4 h-4 text-emerald-600" />
                   {t('finalSecret')}
                 </label>
                 <textarea
                   value={tempParticipant.secret}
                   onChange={(e) => setTempParticipant({ ...tempParticipant, secret: e.target.value })}
-                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-amber-50"
+                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-white"
                   placeholder="Ex: Ton cadeau est caché dans le frigo!"
                   rows={3}
                 />
@@ -513,32 +583,73 @@ function App() {
               />
             </h2>
 
+            {/* Concept explanation */}
+            <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-800">{t('locationConceptExplanation')}</p>
+            </div>
+
+            {/* Visibility legend */}
+            <div className="flex items-center gap-4 text-sm p-2 bg-white rounded-lg border border-gray-200">
+              <span className="font-medium text-gray-600">{t('visibilityLegend')}:</span>
+              <span className="flex items-center gap-1"><Eye className="w-3 h-3 text-emerald-600" /><span className="inline-block w-3 h-3 rounded bg-emerald-50 border border-emerald-300"></span> {t('visibleToParticipants')}</span>
+              <span className="flex items-center gap-1"><EyeOff className="w-3 h-3 text-gray-400" /><span className="inline-block w-3 h-3 rounded bg-gray-100 border border-gray-300 border-dashed"></span> {t('creatorOnly')}</span>
+            </div>
+
             <div className="space-y-4">
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">
+              {/* Location name: creator-only when useClue, participant-visible when not */}
+              <div className={tempLocation.useClue
+                ? "border-l-4 border-l-gray-400 border-dashed bg-gray-50 rounded-r-lg p-4"
+                : "border-l-4 border-l-emerald-500 bg-emerald-50 rounded-r-lg p-4"
+              }>
+                <label className="block text-emerald-800 mb-2 font-medium flex items-center gap-1">
+                  {tempLocation.useClue
+                    ? <EyeOff className="w-4 h-4 text-gray-400" />
+                    : <Eye className="w-4 h-4 text-emerald-600" />
+                  }
                   {t('locationName')}
                 </label>
                 <input
                   type="text"
                   value={tempLocation.name}
                   onChange={(e) => setTempLocation({ ...tempLocation, name: e.target.value })}
-                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-amber-50"
+                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-white"
                   placeholder="Ex: Cuisine"
                 />
               </div>
 
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">
-                  {t('locationClue')}
+              {/* Toggle: show location name vs use clue */}
+              <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg border border-amber-200">
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={tempLocation.useClue}
+                    onChange={(e) => setTempLocation({ ...tempLocation, useClue: e.target.checked })}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
                 </label>
-                <textarea
-                  value={tempLocation.clue}
-                  onChange={(e) => setTempLocation({ ...tempLocation, clue: e.target.value })}
-                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-amber-50"
-                  placeholder="Ex: C'est là où l'on prépare les repas"
-                  rows={3}
-                />
+                <span className="text-sm text-emerald-800">
+                  {tempLocation.useClue ? t('useClueInstead') : t('showLocationName')}
+                </span>
               </div>
+
+              {/* Clue field: only shown when useClue is true */}
+              {tempLocation.useClue && (
+                <div className="border-l-4 border-l-emerald-500 bg-emerald-50 rounded-r-lg p-4">
+                  <label className="block text-emerald-800 mb-2 font-medium flex items-center gap-1">
+                    <Eye className="w-4 h-4 text-emerald-600" />
+                    {t('locationClue')}
+                  </label>
+                  <textarea
+                    value={tempLocation.clue}
+                    onChange={(e) => setTempLocation({ ...tempLocation, clue: e.target.value })}
+                    className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-white"
+                    placeholder="Ex: C'est là où l'on prépare les repas"
+                    rows={3}
+                  />
+                </div>
+              )}
             </div>
 
             {treasureHunt.locations.length > 0 && (
@@ -548,7 +659,11 @@ function App() {
                   {treasureHunt.locations.map((loc, idx) => (
                     <li key={idx} className="mb-2 pb-2 border-b border-amber-100 last:border-0 last:mb-0 last:pb-0 flex justify-between items-center">
                       <div>
-                        <strong>{loc.name}</strong>: {loc.clue}
+                        <strong>{loc.name}</strong>
+                        {loc.useClue
+                          ? <span className="text-gray-600"> — {loc.clue}</span>
+                          : <span className="ml-2 text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded">{t('locationDirectName')}</span>
+                        }
                       </div>
                       <button
                         onClick={() => editEntry('location', idx)}
@@ -573,8 +688,8 @@ function App() {
               <div className="flex gap-2">
                 <button
                   onClick={addLocation}
-                  disabled={!tempLocation.name || !tempLocation.clue}
-                  className={`bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg ${!tempLocation.name || !tempLocation.clue ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-800'
+                  disabled={!tempLocation.name || (tempLocation.useClue && !tempLocation.clue)}
+                  className={`bg-emerald-700 text-amber-100 py-2 px-4 rounded-lg ${!tempLocation.name || (tempLocation.useClue && !tempLocation.clue) ? 'opacity-50 cursor-not-allowed' : 'hover:bg-emerald-800'
                     } transition-colors`}
                 >
                   {t('addLocation')}
@@ -606,48 +721,59 @@ function App() {
               />
             </h2>
 
+            {/* Visibility legend */}
+            <div className="flex items-center gap-4 text-sm p-2 bg-white rounded-lg border border-gray-200">
+              <span className="font-medium text-gray-600">{t('visibilityLegend')}:</span>
+              <span className="flex items-center gap-1"><Eye className="w-3 h-3 text-emerald-600" /><span className="inline-block w-3 h-3 rounded bg-emerald-50 border border-emerald-300"></span> {t('visibleToParticipants')}</span>
+              <span className="flex items-center gap-1"><EyeOff className="w-3 h-3 text-gray-400" /><span className="inline-block w-3 h-3 rounded bg-gray-100 border border-gray-300 border-dashed"></span> {t('creatorOnly')}</span>
+            </div>
+
             <div className="space-y-4">
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">
+              <div className="border-l-4 border-l-emerald-500 bg-emerald-50 rounded-r-lg p-4">
+                <label className="block text-emerald-800 mb-2 font-medium flex items-center gap-1">
+                  <Eye className="w-4 h-4 text-emerald-600" />
                   {t('riddleText')}
                 </label>
                 <textarea
                   value={tempRiddle.text}
                   onChange={(e) => setTempRiddle({ ...tempRiddle, text: e.target.value })}
-                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-amber-50"
+                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-white"
                   placeholder="Ex: Je suis blanc comme neige et froid comme glace. Qui suis-je?"
                   rows={3}
                 />
               </div>
 
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">
+              <div className="border-l-4 border-l-gray-400 border-dashed bg-gray-50 rounded-r-lg p-4">
+                <label className="block text-emerald-800 mb-2 font-medium flex items-center gap-1">
+                  <EyeOff className="w-4 h-4 text-gray-400" />
                   {t('expectedAnswer')}
                 </label>
                 <input
                   type="text"
                   value={tempRiddle.answer}
                   onChange={(e) => setTempRiddle({ ...tempRiddle, answer: e.target.value })}
-                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-amber-50"
+                  className="w-full p-3 border-2 rounded-lg border-gray-300 focus:border-emerald-500 bg-white"
                   placeholder="Ex: Le réfrigérateur"
                 />
               </div>
 
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">
+              <div className="border-l-4 border-l-emerald-500 bg-emerald-50 rounded-r-lg p-4">
+                <label className="block text-emerald-800 mb-2 font-medium flex items-center gap-1">
+                  <Eye className="w-4 h-4 text-emerald-600" />
                   {t('digitInstruction')}
                 </label>
                 <textarea
                   value={tempRiddle.instruction}
                   onChange={(e) => setTempRiddle({ ...tempRiddle, instruction: e.target.value })}
-                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-amber-50"
+                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-white"
                   placeholder="Ex: Compte le nombre de lettres dans ta réponse et garde uniquement le chiffre des unités"
                   rows={3}
                 />
               </div>
 
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">
+              <div className="border-l-4 border-l-gray-400 border-dashed bg-gray-50 rounded-r-lg p-4">
+                <label className="block text-emerald-800 mb-2 font-medium flex items-center gap-1">
+                  <EyeOff className="w-4 h-4 text-gray-400" />
                   {t('expectedDigit')}
                 </label>
                 <input
@@ -661,7 +787,7 @@ function App() {
                   }}
                   maxLength={1}
                   pattern="[0-9]"
-                  className="w-full p-3 border-2 rounded-lg border-emerald-300 focus:border-emerald-500 bg-amber-50"
+                  className="w-full p-3 border-2 rounded-lg border-gray-300 focus:border-emerald-500 bg-white"
                   placeholder="Ex: 3"
                 />
               </div>
@@ -676,7 +802,7 @@ function App() {
                       <div>
                         <strong>{t('riddles')} {idx + 1}</strong>: {r.text.substring(0, 50)}...
                         <br />
-                        <span className="text-sm">{t('answer')}: {r.answer} → {t('digit')}: {r.digit}</span>
+                        <span className="text-sm text-gray-500">{t('answer')}: {r.answer} → {t('digit')}: {r.digit}</span>
                       </div>
                       <button
                         onClick={() => editEntry('riddle', idx)}
@@ -829,6 +955,30 @@ function App() {
 
       {/* Language Selector */}
       <LanguageSelector />
+
+      {/* Restore draft dialog */}
+      {showRestoreDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-xl p-6 max-w-md mx-4 shadow-2xl border-2 border-amber-300">
+            <h3 className="text-lg font-bold text-emerald-800 mb-3">{t('resumeSession')}</h3>
+            <p className="text-gray-700 mb-6">{t('resumeSessionMessage')}</p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={handleDiscardDraft}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                {t('discardSession')}
+              </button>
+              <button
+                onClick={handleRestoreDraft}
+                className="px-4 py-2 bg-emerald-700 text-white rounded-lg hover:bg-emerald-800 transition-colors"
+              >
+                {t('resumeSession')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Decorative elements */}
       <div className="absolute top-20 left-40 opacity-20">

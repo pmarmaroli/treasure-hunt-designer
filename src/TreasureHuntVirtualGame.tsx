@@ -13,6 +13,7 @@ type Participant = {
 type Location = {
     name: string;
     clue: string;
+    useClue: boolean;
 };
 
 type Riddle = {
@@ -70,7 +71,15 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
     };
 
     const handleStartHunt = () => {
-        setCurrentStep('location');
+        if (!selectedParticipant) return;
+        const firstLocationIndex = selectedParticipant.circuit[0];
+        const firstLocation = treasureHunt.locations[firstLocationIndex];
+        // If the first location shows name directly, skip to riddle
+        if (!firstLocation.useClue) {
+            setCurrentStep('riddle');
+        } else {
+            setCurrentStep('location');
+        }
     };
 
     const handleLocationGuessSubmit = (e: React.FormEvent) => {
@@ -109,10 +118,17 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                 // Move to next location in the circuit
                 const nextCircuitPosition = circuitPosition + 1;
                 setCircuitPosition(nextCircuitPosition);
-                setCurrentLocationIndex(selectedParticipant.circuit[nextCircuitPosition]);
+                const nextLocIdx = selectedParticipant.circuit[nextCircuitPosition];
+                setCurrentLocationIndex(nextLocIdx);
                 setLocationGuess('');
                 setRiddleAnswer('');
-                setCurrentStep('location');
+                // If next location shows name directly, skip guessing
+                const nextLocation = treasureHunt.locations[nextLocIdx];
+                if (!nextLocation.useClue) {
+                    setCurrentStep('riddle');
+                } else {
+                    setCurrentStep('location');
+                }
             }
         } else {
             setErrorMessage(t('wrongAnswer'));
@@ -177,7 +193,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
         switch (currentStep) {
             case 'start': {
                 const firstLocationIndex = selectedParticipant.circuit[0];
-                const firstLocationClue = treasureHunt.locations[firstLocationIndex].clue;
+                const firstLocation = treasureHunt.locations[firstLocationIndex];
 
                 return (
                     <div className="rounded-xl p-6 shadow-lg border-2 border-amber-300 bg-gradient-to-b from-amber-50 to-amber-100">
@@ -191,8 +207,14 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                         <div className="mb-6 p-4 bg-white rounded-lg border border-amber-200">
                             <p className="text-emerald-800">{t('hello')} {selectedParticipant.name}!</p>
                             <p className="mt-3 text-emerald-800">{t('findSecretCode')}</p>
-                            <p className="mt-3 text-emerald-800 font-medium">{t('clueToFindLocation')}</p>
-                            <p className="mt-2 p-3 bg-amber-50 rounded-lg text-emerald-700 italic border border-amber-100">{firstLocationClue}</p>
+                            {firstLocation.useClue ? (
+                                <>
+                                    <p className="mt-3 text-emerald-800 font-medium">{t('clueToFindLocation')}</p>
+                                    <p className="mt-2 p-3 bg-amber-50 rounded-lg text-emerald-700 italic border border-amber-100">{firstLocation.clue}</p>
+                                </>
+                            ) : (
+                                <p className="mt-3 text-emerald-800 font-medium">{t('findLocation')}: <span className="font-bold">{firstLocation.name}</span></p>
+                            )}
                         </div>
 
                         <button
@@ -264,6 +286,7 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
 
             case 'riddle': {
                 const riddle = treasureHunt.riddles[currentLocationIndex];
+                const currentLocation = treasureHunt.locations[currentLocationIndex];
 
                 return (
                     <div className="rounded-xl p-6 shadow-lg border-2 border-amber-300 bg-gradient-to-b from-amber-50 to-amber-100">
@@ -277,7 +300,13 @@ const TreasureHuntVirtualGame: React.FC<TreasureHuntVirtualGameProps> = ({
                         </div>
 
                         <div className="mb-6 p-4 bg-white rounded-lg border border-amber-200">
-                            <p className="text-emerald-800 mb-3">{t('correctLocation')}</p>
+                            {currentLocation.useClue ? (
+                                <p className="text-emerald-800 mb-3">{t('correctLocation')}</p>
+                            ) : (
+                                <p className="text-emerald-800 mb-3 font-medium">
+                                    <MapPin className="inline w-4 h-4 mr-1" />{currentLocation.name}
+                                </p>
+                            )}
                             <div className="p-3 bg-amber-50 rounded-lg border border-amber-100">
                                 <p className="text-emerald-700 font-medium">{t('hereIsRiddle')}</p>
                                 <p className="mt-2 text-emerald-800 italic">{riddle.text}</p>

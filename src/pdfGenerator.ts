@@ -13,6 +13,7 @@ type Participant = {
 type Location = {
   name: string;
   clue: string;
+  useClue: boolean;
 };
 
 type Riddle = {
@@ -233,20 +234,23 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
     doc.text(participant.name, 105, 29, { align: 'center' });
     doc.setTextColor(0, 0, 0);
 
-    // Start instructions: greeting + first location clue
+    // Start instructions: greeting + first location clue/name
     let y = 40;
     const firstLocationIndex = participant.circuit[0];
-    const firstLocationClue = treasureHunt.locations[firstLocationIndex].clue;
+    const firstLocation = treasureHunt.locations[firstLocationIndex];
 
     doc.setFontSize(11);
     doc.text(`${texts.hello} ${participant.name}!`, 25, y);
     y += 7;
 
     doc.setFontSize(10);
-    const startText = doc.splitTextToSize(
-      `${texts.findSecretCode}\n${texts.clueToFindLocation} ${firstLocationClue}`,
-      160
-    );
+    let startContent: string;
+    if (firstLocation.useClue) {
+      startContent = `${texts.findSecretCode}\n${texts.clueToFindLocation} ${firstLocation.clue}`;
+    } else {
+      startContent = `${texts.findSecretCode}\n${texts.location} ${firstLocation.name}`;
+    }
+    const startText = doc.splitTextToSize(startContent, 160);
     doc.text(startText, 25, y);
     y += startText.length * 5 + 5;
 
@@ -259,7 +263,6 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
 
     // Each stop in the participant's circuit
     participant.circuit.forEach((locationIndex, circuitIndex) => {
-      const location = treasureHunt.locations[locationIndex];
       const riddle = treasureHunt.riddles[locationIndex];
       const isLastStop = circuitIndex === participant.circuit.length - 1;
 
@@ -290,7 +293,14 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
       y += instructionText.length * 5 + 3;
 
       if (isLastStop) {
-        // Final code assembly instructions
+        // Final code assembly instructions — with page-break checks
+        if (y > 240) {
+          doc.addPage();
+          doc.setFontSize(12);
+          doc.text(`${participant.name} (${texts.page} ${circuitIndex + 1})`, 105, 15, { align: 'center' });
+          y = 25;
+        }
+
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.text(texts.toFindSecretCode, 25, y);
@@ -300,22 +310,44 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
         participant.circuit.forEach((locIdx, idx) => {
           const instr = treasureHunt.riddles[locIdx].instruction;
           const line = doc.splitTextToSize(`${texts.withAnswer} ${idx + 1}: ${instr}`, 155);
+
+          // Check if this instruction block fits on the current page
+          const neededHeight = line.length * 5 + 2;
+          if (y + neededHeight > 275) {
+            doc.addPage();
+            doc.setFontSize(12);
+            doc.text(`${participant.name} (${texts.toFindSecretCode})`, 105, 15, { align: 'center' });
+            y = 25;
+            doc.setFontSize(10);
+          }
+
           doc.text(line, 30, y);
-          y += line.length * 5 + 2;
+          y += neededHeight;
         });
       } else {
-        // Next location clue
+        // Next location clue or name — with page-break check
         const nextLocationIndex = participant.circuit[circuitIndex + 1];
-        const nextLocationClue = treasureHunt.locations[nextLocationIndex].clue;
+        const nextLocation = treasureHunt.locations[nextLocationIndex];
+
+        if (y > 265) {
+          doc.addPage();
+          doc.setFontSize(12);
+          doc.text(`${participant.name} (${texts.page} ${circuitIndex + 2})`, 105, 15, { align: 'center' });
+          y = 25;
+        }
 
         doc.setFontSize(10);
-        doc.text(texts.toFindNextLocation, 25, y);
-        y += 6;
-
-        doc.setFontSize(9);
-        const clueText = doc.splitTextToSize(nextLocationClue, 155);
-        doc.text(clueText, 30, y);
-        y += clueText.length * 5 + 3;
+        if (nextLocation.useClue) {
+          doc.text(texts.toFindNextLocation, 25, y);
+          y += 6;
+          doc.setFontSize(9);
+          const clueText = doc.splitTextToSize(nextLocation.clue, 155);
+          doc.text(clueText, 30, y);
+          y += clueText.length * 5 + 3;
+        } else {
+          doc.text(`${texts.toFindNextLocation} ${nextLocation.name}`, 25, y);
+          y += 9;
+        }
       }
 
       // Separator line between stops

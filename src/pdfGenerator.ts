@@ -66,6 +66,7 @@ const pdfTranslations = {
     writeAnswerThenOpenEnvelope: 'Écris ta réponse puis consulte ta fiche de navigation',
     cutAlongDottedLine: 'Découpez le long des pointillés',
     placeAtLocation: 'À déposer au lieu :',
+    enterSecretCode: 'Ton code secret :',
   },
   en: {
     startInstructions: 'Starting instructions to give to participants',
@@ -101,6 +102,7 @@ const pdfTranslations = {
     writeAnswerThenOpenEnvelope: 'Write your answer down, then check your navigation sheet',
     cutAlongDottedLine: 'Cut along dotted line',
     placeAtLocation: 'Place at location:',
+    enterSecretCode: 'Your secret code:',
   },
   es: {
     startInstructions: 'Instrucciones iniciales para dar a los participantes',
@@ -136,6 +138,7 @@ const pdfTranslations = {
     writeAnswerThenOpenEnvelope: 'Escribe tu respuesta y consulta tu hoja de navegación',
     cutAlongDottedLine: 'Corte por la línea de puntos',
     placeAtLocation: 'Colocar en la ubicación:',
+    enterSecretCode: 'Tu código secreto:',
   }
 };
 
@@ -326,6 +329,44 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
           doc.text(line, 30, y);
           y += neededHeight;
         });
+
+        // Draw digit boxes for the secret code
+        const codeLength = participant.circuit.length;
+        const boxSize = 14;
+        const boxGap = 4;
+        const totalWidth = codeLength * boxSize + (codeLength - 1) * boxGap;
+        const boxStartX = (210 - totalWidth) / 2; // center on A4
+
+        // Ensure boxes fit on the page
+        if (y + 35 > 280) {
+          doc.addPage();
+          doc.setFontSize(12);
+          doc.text(`${participant.name}`, 105, 15, { align: 'center' });
+          y = 30;
+        }
+
+        y += 10;
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`${texts.enterSecretCode}`, 105, y, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        y += 8;
+
+        for (let i = 0; i < codeLength; i++) {
+          const x = boxStartX + i * (boxSize + boxGap);
+          // Position number above the box
+          doc.setFontSize(7);
+          doc.setTextColor(150, 150, 150);
+          doc.text(`${i + 1}`, x + boxSize / 2, y, { align: 'center' });
+          doc.setTextColor(0, 0, 0);
+          // Draw the box
+          doc.setDrawColor(16, 122, 90);
+          doc.setLineWidth(0.6);
+          doc.rect(x, y + 1, boxSize, boxSize);
+          doc.setLineWidth(0.2);
+          doc.setDrawColor(0, 0, 0);
+        }
+        y += boxSize + 8;
       } else {
         // Next location clue or name — with page-break check
         const nextLocationIndex = participant.circuit[circuitIndex + 1];

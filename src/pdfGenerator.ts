@@ -272,8 +272,9 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
       // Check if we need a new page
       if (y > 250) {
         doc.addPage();
+        const pageNum = doc.getNumberOfPages() - participantStartPage + 1;
         doc.setFontSize(12);
-        doc.text(`${participant.name} (${texts.page} ${circuitIndex + 1})`, 105, 15, { align: 'center' });
+        doc.text(`${participant.name} (${texts.page} ${pageNum})`, 105, 15, { align: 'center' });
         y = 25;
       }
 
@@ -332,8 +333,9 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
 
         if (y > 265) {
           doc.addPage();
+          const pageNum = doc.getNumberOfPages() - participantStartPage + 1;
           doc.setFontSize(12);
-          doc.text(`${participant.name} (${texts.page} ${circuitIndex + 2})`, 105, 15, { align: 'center' });
+          doc.text(`${participant.name} (${texts.page} ${pageNum})`, 105, 15, { align: 'center' });
           y = 25;
         }
 

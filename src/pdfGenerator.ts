@@ -223,6 +223,9 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
       doc.addPage();
     }
 
+    // Track the starting page number for this participant (1-based)
+    const participantStartPage = doc.getNumberOfPages();
+
     // Header: title + participant name
     doc.setFontSize(16);
     doc.text(title, 105, 15, { align: 'center' });
@@ -293,13 +296,11 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
       y += instructionText.length * 5 + 3;
 
       if (isLastStop) {
-        // Final code assembly instructions — with page-break checks
-        if (y > 240) {
-          doc.addPage();
-          doc.setFontSize(12);
-          doc.text(`${participant.name} (${texts.page} ${circuitIndex + 1})`, 105, 15, { align: 'center' });
-          y = 25;
-        }
+        // Always start the secret code instructions on a new page
+        doc.addPage();
+        doc.setFontSize(12);
+        doc.text(`${participant.name}`, 105, 15, { align: 'center' });
+        y = 30;
 
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
@@ -359,14 +360,22 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
       }
     });
 
-    // Organizer-only footer: location order (discreet, light gray)
+    // Organizer-only footer: location order (discreet, light gray, multi-line)
     const locationOrder = participant.circuit
       .map((locIdx, idx) => `${idx + 1}: ${treasureHunt.locations[locIdx].name}`)
       .join('  |  ');
-    doc.setFontSize(7);
+    doc.setFontSize(6);
     doc.setTextColor(180, 180, 180);
-    doc.text(locationOrder, 105, 290, { align: 'center' });
+    const footerLines = doc.splitTextToSize(locationOrder, 170);
+    const footerStartY = 292 - (footerLines.length - 1) * 3;
+    doc.text(footerLines, 105, footerStartY, { align: 'center' });
     doc.setTextColor(0, 0, 0);
+
+    // Ensure even page count per participant for recto-verso printing
+    const participantPageCount = doc.getNumberOfPages() - participantStartPage + 1;
+    if (participantPageCount % 2 !== 0) {
+      doc.addPage(); // blank page to make it even
+    }
   });
 
   doc.save(`${title.replace(/\s+/g, '_')}_${texts.navigationSlipsFile}.pdf`);

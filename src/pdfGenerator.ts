@@ -67,6 +67,11 @@ const pdfTranslations = {
     cutAlongDottedLine: 'Découpez le long des pointillés',
     placeAtLocation: 'À déposer au lieu :',
     enterSecretCode: 'Ton code secret :',
+    findRiddleHere: 'Rends-toi à cet endroit :',
+    goToLocation: 'Rends-toi à :',
+    solveRiddle: 'Résous l\'énigme que tu trouveras là-bas, puis écris ta réponse ici :',
+    yourAnswer: 'Ta réponse à l\'énigme :',
+    letterCount: 'lettres',
   },
   en: {
     startInstructions: 'Starting instructions to give to participants',
@@ -103,6 +108,11 @@ const pdfTranslations = {
     cutAlongDottedLine: 'Cut along dotted line',
     placeAtLocation: 'Place at location:',
     enterSecretCode: 'Your secret code:',
+    findRiddleHere: 'Go to this place:',
+    goToLocation: 'Go to:',
+    solveRiddle: 'Solve the riddle you find there, then write your answer here:',
+    yourAnswer: 'Your answer to the riddle:',
+    letterCount: 'letters',
   },
   es: {
     startInstructions: 'Instrucciones iniciales para dar a los participantes',
@@ -139,6 +149,11 @@ const pdfTranslations = {
     cutAlongDottedLine: 'Corte por la línea de puntos',
     placeAtLocation: 'Colocar en la ubicación:',
     enterSecretCode: 'Tu código secreto:',
+    findRiddleHere: 'Ve a este lugar:',
+    goToLocation: 'Ve a:',
+    solveRiddle: 'Resuelve el acertijo que encontrarás allí, y escribe tu respuesta aquí:',
+    yourAnswer: 'Tu respuesta al acertijo:',
+    letterCount: 'letras',
   }
 };
 
@@ -214,7 +229,54 @@ const generateRiddlePostersPDF = (treasureHunt: TreasureHunt, language: Language
 };
 
 /**
- * Génère un PDF avec une fiche par participant (instructions de départ + navigation complète)
+ * Draw answer placeholder boxes — one box per character, with gaps for spaces.
+ * Returns the Y position after the boxes.
+ */
+const drawAnswerBoxes = (
+  doc: jsPDF,
+  answer: string,
+  startY: number,
+  label: string
+): number => {
+  const boxSize = 12;
+  const boxGap = 3;
+  const spaceGap = 8;
+
+  // Calculate total width to center the boxes
+  let totalWidth = 0;
+  for (const ch of answer) {
+    totalWidth += ch === ' ' ? spaceGap : boxSize + boxGap;
+  }
+  totalWidth -= boxGap; // remove trailing gap
+
+  const startX = Math.max(25, (210 - totalWidth) / 2);
+
+  // Label
+  doc.setFontSize(9);
+  doc.setTextColor(100, 100, 100);
+  doc.text(label, startX, startY);
+  doc.setTextColor(0, 0, 0);
+  const boxY = startY + 3;
+
+  let cx = startX;
+  for (const ch of answer) {
+    if (ch === ' ') {
+      cx += spaceGap;
+    } else {
+      doc.setDrawColor(16, 122, 90);
+      doc.setLineWidth(0.5);
+      doc.rect(cx, boxY, boxSize, boxSize);
+      doc.setLineWidth(0.2);
+      doc.setDrawColor(0, 0, 0);
+      cx += boxSize + boxGap;
+    }
+  }
+
+  return boxY + boxSize + 6;
+};
+
+/**
+ * Génère un PDF avec une fiche par participant (liste d'énigmes + navigation complète)
  */
 const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Language) => {
   const doc = new jsPDF();
@@ -240,40 +302,16 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
     doc.text(participant.name, 105, 29, { align: 'center' });
     doc.setTextColor(0, 0, 0);
 
-    // Start instructions: greeting + first location clue/name
-    let y = 40;
-    const firstLocationIndex = participant.circuit[0];
-    const firstLocation = treasureHunt.locations[firstLocationIndex];
+    let y = 42;
 
-    doc.setFontSize(11);
-    doc.text(`${texts.hello} ${participant.name}!`, 25, y);
-    y += 7;
-
-    doc.setFontSize(10);
-    let startContent: string;
-    if (firstLocation.useClue) {
-      startContent = `${texts.findSecretCode}\n${texts.clueToFindLocation} ${firstLocation.clue}`;
-    } else {
-      startContent = `${texts.findSecretCode}\n${texts.location} ${firstLocation.name}`;
-    }
-    const startText = doc.splitTextToSize(startContent, 160);
-    doc.text(startText, 25, y);
-    y += startText.length * 5 + 5;
-
-    doc.setDrawColor(16, 122, 90);
-    doc.setLineWidth(0.5);
-    doc.line(20, y, 190, y);
-    doc.setDrawColor(0, 0, 0);
-    doc.setLineWidth(0.2);
-    y += 6;
-
-    // Each stop in the participant's circuit
+    // Each riddle in the participant's circuit
     participant.circuit.forEach((locationIndex, circuitIndex) => {
+      const location = treasureHunt.locations[locationIndex];
       const riddle = treasureHunt.riddles[locationIndex];
-      const isLastStop = circuitIndex === participant.circuit.length - 1;
 
-      // Check if we need a new page
-      if (y > 250) {
+      // Estimate block height to decide if we need a new page
+      const estimatedHeight = 50; // header + clue + boxes
+      if (y + estimatedHeight > 270) {
         doc.addPage();
         const pageNum = doc.getNumberOfPages() - participantStartPage + 1;
         doc.setFontSize(12);
@@ -281,7 +319,7 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
         y = 25;
       }
 
-      // Stop number (no location name — participant must discover it from clues)
+      // Riddle number banner
       doc.setFillColor(240, 240, 240);
       doc.rect(20, y - 4, 170, 8, 'F');
       doc.setFontSize(11);
@@ -290,118 +328,120 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
       doc.setFont('helvetica', 'normal');
       y += 10;
 
-      // Instruction for this riddle's answer
+      // STEP 1: Where to go (with step number icon)
       doc.setFontSize(10);
-      const instructionText = doc.splitTextToSize(
-        `${texts.withAnswer} ${circuitIndex + 1}: ${riddle.instruction}`,
-        160
-      );
-      doc.text(instructionText, 25, y);
-      y += instructionText.length * 5 + 3;
-
-      if (isLastStop) {
-        // Always start the secret code instructions on a new page
-        doc.addPage();
-        doc.setFontSize(12);
-        doc.text(`${participant.name}`, 105, 15, { align: 'center' });
-        y = 30;
-
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(texts.toFindSecretCode, 25, y);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(16, 122, 90);
+      doc.text('\u2776', 25, y); // ❶ circled 1
+      doc.setTextColor(0, 0, 0);
+      if (location.useClue) {
+        doc.text(texts.findRiddleHere, 33, y);
         doc.setFont('helvetica', 'normal');
-        y += 7;
-
-        participant.circuit.forEach((locIdx, idx) => {
-          const instr = treasureHunt.riddles[locIdx].instruction;
-          const line = doc.splitTextToSize(`${texts.withAnswer} ${idx + 1}: ${instr}`, 155);
-
-          // Check if this instruction block fits on the current page
-          const neededHeight = line.length * 5 + 2;
-          if (y + neededHeight > 275) {
-            doc.addPage();
-            doc.setFontSize(12);
-            doc.text(`${participant.name} (${texts.toFindSecretCode})`, 105, 15, { align: 'center' });
-            y = 25;
-            doc.setFontSize(10);
-          }
-
-          doc.text(line, 30, y);
-          y += neededHeight;
-        });
-
-        // Draw digit boxes for the secret code
-        const codeLength = participant.circuit.length;
-        const boxSize = 14;
-        const boxGap = 4;
-        const totalWidth = codeLength * boxSize + (codeLength - 1) * boxGap;
-        const boxStartX = (210 - totalWidth) / 2; // center on A4
-
-        // Ensure boxes fit on the page
-        if (y + 35 > 280) {
-          doc.addPage();
-          doc.setFontSize(12);
-          doc.text(`${participant.name}`, 105, 15, { align: 'center' });
-          y = 30;
-        }
-
-        y += 10;
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.text(`${texts.enterSecretCode}`, 105, y, { align: 'center' });
+        y += 5;
+        doc.setFontSize(9);
+        const clueText = doc.splitTextToSize(location.clue, 150);
+        doc.text(clueText, 35, y);
+        y += clueText.length * 5 + 4;
+      } else {
+        doc.text(`${texts.goToLocation} ${location.name}`, 33, y);
         doc.setFont('helvetica', 'normal');
         y += 8;
-
-        for (let i = 0; i < codeLength; i++) {
-          const x = boxStartX + i * (boxSize + boxGap);
-          // Position number above the box
-          doc.setFontSize(7);
-          doc.setTextColor(150, 150, 150);
-          doc.text(`${i + 1}`, x + boxSize / 2, y, { align: 'center' });
-          doc.setTextColor(0, 0, 0);
-          // Draw the box
-          doc.setDrawColor(16, 122, 90);
-          doc.setLineWidth(0.6);
-          doc.rect(x, y + 1, boxSize, boxSize);
-          doc.setLineWidth(0.2);
-          doc.setDrawColor(0, 0, 0);
-        }
-        y += boxSize + 8;
-      } else {
-        // Next location clue or name — with page-break check
-        const nextLocationIndex = participant.circuit[circuitIndex + 1];
-        const nextLocation = treasureHunt.locations[nextLocationIndex];
-
-        if (y > 265) {
-          doc.addPage();
-          const pageNum = doc.getNumberOfPages() - participantStartPage + 1;
-          doc.setFontSize(12);
-          doc.text(`${participant.name} (${texts.page} ${pageNum})`, 105, 15, { align: 'center' });
-          y = 25;
-        }
-
-        doc.setFontSize(10);
-        if (nextLocation.useClue) {
-          doc.text(texts.toFindNextLocation, 25, y);
-          y += 6;
-          doc.setFontSize(9);
-          const clueText = doc.splitTextToSize(nextLocation.clue, 155);
-          doc.text(clueText, 30, y);
-          y += clueText.length * 5 + 3;
-        } else {
-          doc.text(`${texts.toFindNextLocation} ${nextLocation.name}`, 25, y);
-          y += 9;
-        }
       }
 
-      // Separator line between stops
-      if (!isLastStop) {
+      // STEP 2: Solve riddle and write answer (with step number icon)
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(16, 122, 90);
+      doc.text('\u2777', 25, y); // ❷ circled 2
+      doc.setTextColor(0, 0, 0);
+      const solveText = doc.splitTextToSize(texts.solveRiddle, 150);
+      doc.text(solveText, 33, y);
+      doc.setFont('helvetica', 'normal');
+      y += solveText.length * 5 + 2;
+
+      // Letter count hint
+      const letterCount = riddle.answer.replace(/\s/g, '').length;
+      doc.setFontSize(8);
+      doc.setTextColor(130, 130, 130);
+      doc.text(`(${letterCount} ${texts.letterCount})`, 35, y);
+      doc.setTextColor(0, 0, 0);
+      y += 4;
+
+      // Answer placeholder boxes
+      y = drawAnswerBoxes(doc, riddle.answer, y, texts.yourAnswer);
+
+      // Separator line between riddles
+      if (circuitIndex < participant.circuit.length - 1) {
         doc.setDrawColor(200, 200, 200);
         doc.line(30, y, 180, y);
         doc.setDrawColor(0, 0, 0);
         y += 6;
       }
     });
+
+    // Secret code page — always on a new page
+    doc.addPage();
+    doc.setFontSize(12);
+    doc.text(`${participant.name}`, 105, 15, { align: 'center' });
+    y = 30;
+
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(texts.toFindSecretCode, 25, y);
+    doc.setFont('helvetica', 'normal');
+    y += 7;
+
+    participant.circuit.forEach((locIdx, idx) => {
+      const instr = treasureHunt.riddles[locIdx].instruction;
+      const line = doc.splitTextToSize(`${texts.withAnswer} ${idx + 1}: ${instr}`, 155);
+
+      const neededHeight = line.length * 5 + 2;
+      if (y + neededHeight > 275) {
+        doc.addPage();
+        doc.setFontSize(12);
+        doc.text(`${participant.name} (${texts.toFindSecretCode})`, 105, 15, { align: 'center' });
+        y = 25;
+        doc.setFontSize(10);
+      }
+
+      doc.text(line, 30, y);
+      y += neededHeight;
+    });
+
+    // Draw digit boxes for the secret code
+    const codeLength = participant.circuit.length;
+    const boxSize = 14;
+    const boxGap = 4;
+    const totalWidth = codeLength * boxSize + (codeLength - 1) * boxGap;
+    const boxStartX = (210 - totalWidth) / 2;
+
+    if (y + 35 > 280) {
+      doc.addPage();
+      doc.setFontSize(12);
+      doc.text(`${participant.name}`, 105, 15, { align: 'center' });
+      y = 30;
+    }
+
+    y += 10;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`${texts.enterSecretCode}`, 105, y, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    y += 8;
+
+    for (let i = 0; i < codeLength; i++) {
+      const x = boxStartX + i * (boxSize + boxGap);
+      doc.setFontSize(7);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`${i + 1}`, x + boxSize / 2, y, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+      doc.setDrawColor(16, 122, 90);
+      doc.setLineWidth(0.6);
+      doc.rect(x, y + 1, boxSize, boxSize);
+      doc.setLineWidth(0.2);
+      doc.setDrawColor(0, 0, 0);
+    }
+    y += boxSize + 8;
 
     // Organizer-only footer: location order (discreet, light gray, multi-line)
     const locationOrder = participant.circuit
@@ -417,7 +457,7 @@ const generateNavigationSheetsPDF = (treasureHunt: TreasureHunt, language: Langu
     // Ensure even page count per participant for recto-verso printing
     const participantPageCount = doc.getNumberOfPages() - participantStartPage + 1;
     if (participantPageCount % 2 !== 0) {
-      doc.addPage(); // blank page to make it even
+      doc.addPage();
     }
   });
 
